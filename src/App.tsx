@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { getAppVersion, getContributors } from "@/common/utils/package.util";
-import { getAppDisplayName } from "@/common/utils/package.util";
+import { Button } from '@/components/ui/button';
+import { getAppVersion, getContributors } from '@/common/utils/package.util';
+import { getAppDisplayName } from '@/common/utils/package.util';
 
 export default function App() {
   const appName = getAppDisplayName();
@@ -14,7 +14,7 @@ export default function App() {
         <p className="text-sm text-muted-foreground">v{version}</p>
         {contributors.length > 0 && (
           <p className="text-sm text-muted-foreground">
-            Contributors: {contributors.join(", ")}
+            Contributors: {contributors.join(', ')}
           </p>
         )}
         <div className="pt-2">
