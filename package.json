@@ -33,7 +33,18 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "docker:build": "docker build -t galipette-portal .",
+    "docker:run": "docker run --name galipette-portal -p 3000:80 galipette-portal",
+    "docker:dev": "docker build -f Dockerfile.dev -t galipette-portal-dev . && docker run --name galipette-portal-dev -p 5173:5173 -v $(pwd):/app galipette-portal-dev",
+    "podman:build": "podman build -t galipette-portal .",
+    "podman:run": "podman run --name galipette-portal -p 3000:80 galipette-portal",
+    "podman:dev": "powershell -ExecutionPolicy Bypass -File dev.ps1",
+    "podman:compose": "podman-compose up --build",
+    "container:build": "podman build -t galipette-portal .",
+    "container:run": "podman run --name galipette-portal -p 3000:80 galipette-portal",
+    "container:dev": "powershell -ExecutionPolicy Bypass -File dev.ps1",
+    "container:compose": "podman-compose up --build"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

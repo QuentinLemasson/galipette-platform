@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/ui/button';
 import { getAppVersion, getContributors } from '@/common/utils/package.util';
 import { getAppDisplayName } from '@/common/utils/package.util';
 
@@ -17,6 +17,7 @@ export default function App() {
             Contributors: {contributors.join(', ')}
           </p>
         )}
+        <p> TEST APP HERE NOW YEAH</p>
         <div className="pt-2">
           <Button>Test Button</Button>
         </div>
