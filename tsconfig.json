@@ -3,5 +3,17 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/common/*"],
+      "@/components/ui/*": ["./src/common/ui/*"],
+      "@/lib/*": ["./src/common/utils"],
+      "@/hooks/*": ["./src/common/hooks/*"],
+      "@/utils/*": ["./src/common/utils/shadcn.util"],
+      "@/types/*": ["./src/common/types/*"]
+    }
+  }
 }
