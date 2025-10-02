@@ -23,6 +23,7 @@ export default defineConfig([
     },
     rules: {
       'prettier/prettier': 'error',
+      'linebreak-style': 'off',
     },
     languageOptions: {
       ecmaVersion: 2020,
