@@ -1,11 +1,15 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -21,13 +25,5 @@ export default defineConfig({
       '@/lib': path.resolve(__dirname, './src/common/utils'),
       '@/hooks': path.resolve(__dirname, './src/common/hooks'),
     },
-  },
-  server: {
-    watch: {
-      usePolling: true,
-    },
-    host: true, // needed for the Docker Container port mapping to work
-    strictPort: true,
-    port: 5173, // you can replace this port with any port
   },
 });

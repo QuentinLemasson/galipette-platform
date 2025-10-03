@@ -27,12 +27,17 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/common/*": ["./src/common/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/assets/*": ["./src/assets/*"],
+      "@/test/*": ["./src/test/*"],
+      // Shadcn aliases (from components.json)
       "@/components/*": ["./src/common/*"],
-      "@/components/ui/*": ["./src/common/ui/*"],
-      "@/lib/*": ["./src/common/utils"],
-      "@/hooks/*": ["./src/common/hooks/*"],
-      "@/utils/*": ["./src/common/utils/shadcn.util"],
-      "@/types/*": ["./src/common/types/*"]
+      "@/utils": ["./src/common/utils/shadcn.util"],
+      "@/ui/*": ["./src/common/ui/*"],
+      "@/lib/*": ["./src/common/utils/*"],
+      "@/hooks/*": ["./src/common/hooks/*"]
     },
     "resolveJsonModule": true
   },

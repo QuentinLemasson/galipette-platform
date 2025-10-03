@@ -2,7 +2,18 @@
 
 A React + TypeScript + Vite application built with a **feature-first directory architecture**.
 
-## Architecture Overview
+## 📚 Documentation
+
+| Document               | Description                                                                    | Link                                      |
+| ---------------------- | ------------------------------------------------------------------------------ | ----------------------------------------- |
+| **Architecture Guide** | Complete guide to the feature-first architecture, patterns, and best practices | [📖 Architecture](./docs/architecture.md) |
+| **Development Guide**  | Setup, workflow, coding standards, and development best practices              | [🛠️ Development](./docs/development.md)   |
+| **Testing Guide**      | Comprehensive testing setup with Vitest, React Testing Library, and MSW        | [🧪 Testing](./docs/testing.md)           |
+| **Environment Guide**  | Environment configuration, variables, and deployment settings                  | [🌍 Environment](./docs/environment.md)   |
+| **Contributing Guide** | How to contribute, code standards, and pull request process                    | [🤝 Contributing](./docs/contributing.md) |
+| **Deployment Guide**   | Container setup, Docker/Podman configuration, and deployment strategies        | [🚀 Deployment](./docs/deployment.md)     |
+
+## 🏗️ Architecture Overview
 
 This project uses a modern feature-first directory structure that organizes code by business features rather than technical concerns.
 
@@ -49,22 +60,54 @@ src/
   - **`common/components/`**: Custom generic components
 - **`features/`**: Business features with domain-specific logic and components
 
-## Getting Started
+## 🚀 Quick Start
 
-### Development
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Docker or Podman (optional)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd galipette-portal
+
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
 ```
 
-### Building
+The application will be available at `http://localhost:5173`
+
+### Development Scripts
 
 ```bash
-npm run build
+# Development
+npm run dev              # Start development server
+npm run build           # Build for production
+npm run preview         # Preview production build
+
+# Code Quality
+npm run lint            # Run ESLint
+npm run format          # Format code with Prettier
+npm run format:check    # Check code formatting
+
+# Testing
+npm run test            # Run tests
+npm run test:ui         # Run tests with UI
+npm run test:coverage   # Run tests with coverage
+
+# Container Development
+npm run docker:dev      # Development with Docker
+npm run podman:dev      # Development with Podman
 ```
 
-### Architecture Benefits
+## 🎯 Architecture Benefits
 
 - **Scalability**: Easy to add new features without affecting existing ones
 - **Team Collaboration**: Teams can work on different features independently
@@ -73,7 +116,7 @@ npm run build
 - **Testing**: Feature-level testing is straightforward
 - **Code Splitting**: Natural boundaries for lazy loading
 
-### Import Guidelines
+## 📝 Import Guidelines
 
 ```typescript
 // ✅ Use barrel exports
@@ -84,74 +127,54 @@ import { WelcomeMessage } from '@/features/welcome';
 import { Button } from '@/common/components/Button';
 ```
 
-## Technical Stack
+## 🛠️ Technical Stack
 
-Currently, two official plugins are available:
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Styling
+- **Shadcn/ui** - Component library
+- **Vitest** - Testing framework
+- **MSW** - API mocking
+- **Docker/Podman** - Containerization
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Features
 
-## React Compiler
+- ✅ **Feature-first architecture** for scalable development
+- ✅ **TypeScript** for type safety and better DX
+- ✅ **Testing setup** with Vitest and React Testing Library
+- ✅ **API mocking** with MSW for development and testing
+- ✅ **Environment configuration** with type-safe settings
+- ✅ **Container support** for Docker and Podman
+- ✅ **Code quality** with ESLint and Prettier
+- ✅ **Comprehensive documentation** for all aspects
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🤝 Contributing
 
-## Expanding the ESLint configuration
+We welcome contributions! Please see our [Contributing Guide](./docs/contributing.md) for details on how to get started.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Development Workflow
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new features
+5. Run the test suite
+6. Submit a pull request
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📄 License
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🔗 Links
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+- [Architecture Guide](./docs/architecture.md) - Complete architecture documentation
+- [Development Guide](./docs/development.md) - Development setup and workflow
+- [Testing Guide](./docs/testing.md) - Testing setup and best practices
+- [Environment Guide](./docs/environment.md) - Environment configuration
+- [Contributing Guide](./docs/contributing.md) - How to contribute
+- [Deployment Guide](./docs/deployment.md) - Container setup and deployment
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+---
+
+**Built with ❤️ using feature-first architecture**
