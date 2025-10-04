@@ -6,7 +6,28 @@
     "types": ["vite/client", "node"],
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+
+    // Override baseUrl to be relative to galipette-portal directory
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/common/*": ["./src/common/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/assets/*": ["./src/assets/*"],
+      "@/test/*": ["./src/test/*"],
+
+      // Shadcn aliases (essential for shadcn to work)
+      "@/components/*": ["./src/common/*"],
+      "@/utils": ["./src/common/utils/shadcn.util"],
+      "@/ui/*": ["./src/common/ui/*"],
+      "@/lib/*": ["./src/common/utils/*"],
+      "@/hooks/*": ["./src/common/hooks/*"],
+
+      // Shared library (relative to portal directory, goes up one level)
+      "@shared/*": ["../galipette-shared-lib/types/*"]
+    }
   },
   "include": ["src"]
 }

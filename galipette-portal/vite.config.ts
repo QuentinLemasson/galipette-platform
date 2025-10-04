@@ -1,27 +1,30 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import tsConfigPaths from 'vite-tsconfig-paths';
+// Removed tsConfigPaths - using explicit aliases instead
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), tsConfigPaths()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': './src',
-      '@/app': './src/app',
-      '@/common': './src/common',
-      '@/features': './src/features',
-      '@/assets': './src/assets',
-      '@/test': './src/test',
-      // Shadcn aliases (from components.json)
-      '@/components': './src/common',
-      '@/utils': './src/common/utils/shadcn.util',
-      '@/ui': './src/common/ui',
-      '@/lib': './src/common/utils',
-      '@/hooks': './src/common/hooks',
-      // Shared library alias
-      '@shared': '../galipette-shared-lib/types',
+      // Core aliases
+      '@': '/app/galipette-portal/src',
+      '@/app': '/app/galipette-portal/src/app',
+      '@/common': '/app/galipette-portal/src/common',
+      '@/features': '/app/galipette-portal/src/features',
+      '@/assets': '/app/galipette-portal/src/assets',
+      '@/test': '/app/galipette-portal/src/test',
+
+      // Shadcn aliases (essential for shadcn to work)
+      '@/components': '/app/galipette-portal/src/common',
+      '@/utils': '/app/galipette-portal/src/common/utils/shadcn.util',
+      '@/ui': '/app/galipette-portal/src/common/ui',
+      '@/lib': '/app/galipette-portal/src/common/utils',
+      '@/hooks': '/app/galipette-portal/src/common/hooks',
+
+      // Shared library alias (absolute path from container root)
+      '@shared': '/app/galipette-shared-lib/types',
     },
   },
   server: {
@@ -30,6 +33,6 @@ export default defineConfig({
     },
     host: true, // needed for the Docker Container port mapping to work
     strictPort: true,
-    port: 5173, // you can replace this port with any port
+    port: 5173,
   },
 });

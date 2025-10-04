@@ -52,7 +52,7 @@ function Connect-Database {
 # Function to run migrations
 function Run-Migrations {
     Write-Host "Running database migrations..." -ForegroundColor Yellow
-    docker-compose exec backend npx prisma migrate dev
+    docker-compose exec backend npm exec --workspace=galipette-backend -- prisma migrate dev
 }
 
 # Function to reset database

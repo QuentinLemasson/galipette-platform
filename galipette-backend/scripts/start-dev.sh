@@ -6,11 +6,11 @@ sleep 3
 
 # Generate Prisma client (needed because volumes override build-time generation)
 echo "Generating Prisma client..."
-npx prisma generate --schema=./galipette-backend/prisma/schema.prisma
+npm exec --workspace=galipette-backend -- prisma generate
 
 # Run migrations
 echo "Running database migrations..."
-npx prisma migrate deploy --schema=./galipette-backend/prisma/schema.prisma
+npm exec --workspace=galipette-backend -- prisma migrate deploy
 
 # Start the development server
 echo "Starting development server..."

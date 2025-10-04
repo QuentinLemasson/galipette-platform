@@ -1,15 +1,18 @@
 # Development Dockerfile for Galipette Portal
-FROM node:20-alpine
+# Using Debian for better LightningCSS binary compatibility
+FROM node:20-slim
 
 WORKDIR /app
 
 # Install build dependencies for native modules (lightningcss, etc.)
-RUN apk add --no-cache \
+# Using apt-get for Debian instead of apk for Alpine
+RUN apt-get update && apt-get install -y \
     curl \
     python3 \
     make \
     g++ \
-    git
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files for workspace
 COPY package*.json ./
