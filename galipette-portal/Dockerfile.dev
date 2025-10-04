@@ -1,0 +1,23 @@
+# Development Dockerfile (Non-Alpine)
+FROM node:20
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install all dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Isolate node_modules in a volume to prevent it from being overwritten by the host mount.
+# This ensures that the linux-specific binaries installed during the build are used.
+VOLUME /app/node_modules
+
+# Expose port 5173 (Vite default)
+EXPOSE 5173
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

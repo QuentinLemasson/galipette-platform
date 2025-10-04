@@ -1,0 +1,152 @@
+// ---------- DATASOURCE & GENERATOR ----------
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+// ===================================================
+// =============== USERS & CAMPAIGNS =================
+// ===================================================
+
+model User {
+  id          Int                @id @default(autoincrement()) // Unique user ID
+  email       String             @unique                      // Email (unique)
+  username    String                                            // Username
+  characters  Character[]                                      // Characters owned by user
+  campaigns   CampaignUser[]                                   // Campaign memberships (M:N)
+  createdAt   DateTime           @default(now())               // Creation timestamp
+  updatedAt   DateTime           @updatedAt                    // Last update timestamp
+}
+
+model Campaign {
+  id          Int                @id @default(autoincrement()) // Unique campaign ID
+  name        String                                            // Campaign name
+  description String?                                           // Optional description
+  characters  Character[]        // Characters in this campaign
+  players     CampaignUser[]     // Linked users (players/GMs)
+  createdAt   DateTime           @default(now())               // Creation timestamp
+  updatedAt   DateTime           @updatedAt                    // Last update timestamp
+}
+
+model CampaignUser {
+  user       User         @relation(fields: [userId], references: [id])      // Linked user
+  userId     Int
+  campaign   Campaign     @relation(fields: [campaignId], references: [id])  // Linked campaign
+  campaignId Int
+  role       CampaignRole @default(PLAYER)                                   // Role in campaign
+
+  @@id([userId, campaignId]) // Composite primary key (user+campaign)
+}
+
+enum CampaignRole {
+  PLAYER   // Regular player
+  GM       // Game Master
+}
+
+// ===================================================
+// =============== CHARACTERS & ATTRIBUTES ===========
+// ===================================================
+
+model Character {
+  id            Int                  @id @default(autoincrement()) // Unique character ID
+  name          String                                            // Character name
+  race          Race                 @relation(fields: [raceId], references: [id]) // Linked race
+  raceId        Int
+  skillPoints   Int                  @default(0)                  // Skill points
+  hitPoints     Int                                                // Current HP
+  maxHitPoints  Int                                                // Max HP
+  user          User                 @relation(fields: [userId], references: [id]) // Owner
+  userId        Int
+  campaign      Campaign             @relation(fields: [campaignId], references: [id]) // Campaign
+  campaignId    Int
+  attributes    CharacterAttribute[]                               // Attributes (stats)
+  afflictions   CharacterAffliction[]                              // Afflictions
+  createdAt     DateTime             @default(now())               // Creation timestamp
+  updatedAt     DateTime             @updatedAt                    // Last update timestamp
+
+  @@index([userId])
+  @@index([campaignId])
+}
+
+model Race {
+  id          Int         @id @default(autoincrement()) // Unique race ID
+  name        String      @unique                      // Race name (unique)
+  description String?                                   // Optional description
+  characters  Character[]                              // Characters of this race
+}
+
+model CharacterAttribute {
+  id           Int           @id @default(autoincrement()) // Unique attribute ID
+  character    Character     @relation(fields: [characterId], references: [id]) // Linked character
+  characterId  Int
+  type         AttributeType                                 // Attribute type (enum)
+  value        Int                                           // Attribute value
+}
+
+enum AttributeType {
+  STRENGTH
+  DEXTERITY
+  CONSTITUTION
+  AGILITY
+  PERCEPTION
+  WILLPOWER
+  INTELLIGENCE
+  CHARISMA
+  POWER
+  SPIRITUALITY
+}
+
+// ===================================================
+// ===================== RULES =======================
+// ===================================================
+
+model Rule {
+  id        Int      @id @default(autoincrement()) // Unique rule ID
+  key       String   @unique                      // Rule key (e.g., "attributeToDice")
+  data      Json                                  // Rule data (JSON)
+  description String?                             // Optional description
+  createdAt DateTime @default(now())              // Creation timestamp
+  updatedAt DateTime @updatedAt                   // Last update timestamp
+}
+
+// ===================================================
+// ================== AFFLICTIONS ====================
+// ===================================================
+
+model Affliction {
+  id          Int                  @id @default(autoincrement()) // Unique affliction ID
+  name        String               @unique                      // Affliction name (unique)
+  description String                                            // Description
+  tags        AfflictionTag[]                                   // Tags
+  characters  CharacterAffliction[]                             // Characters affected
+}
+
+model CharacterAffliction {
+  id           Int         @id @default(autoincrement()) // Unique ID
+  character    Character   @relation(fields: [characterId], references: [id]) // Linked character
+  characterId  Int
+  affliction   Affliction  @relation(fields: [afflictionId], references: [id]) // Linked affliction
+  afflictionId Int
+  severity     Int                                           // Severity level
+}
+
+model Tag {
+  id          Int            @id @default(autoincrement()) // Unique tag ID
+  name        String         @unique                      // Tag name (unique)
+  afflictions AfflictionTag[]                             // Afflictions with this tag
+}
+
+model AfflictionTag {
+  affliction   Affliction @relation(fields: [afflictionId], references: [id]) // Linked affliction
+  afflictionId Int
+  tag          Tag        @relation(fields: [tagId], references: [id])        // Linked tag
+  tagId        Int
+
+  @@id([afflictionId, tagId]) // Composite primary key
+}

@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: galipette-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: galipette_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - galipette-network
+
+  # Backend API Server
+  backend:
+    image: galipette-backend-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: galipette-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/galipette_db?schema=public
+      CORS_ORIGIN: http://localhost:5173
+      LOG_LEVEL: info
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+    networks:
+      - galipette-network
+    command: npm run dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+
+networks:
+  galipette-network:
+    driver: bridge

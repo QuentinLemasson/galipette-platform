@@ -1,0 +1,441 @@
+openapi: 3.0.0
+info:
+  title: Galipette Campaigns API
+  version: 1.0.0
+  description: API documentation for campaign management in the Galipette RPG platform
+
+paths:
+  /api/campaigns:
+    get:
+      summary: Get all campaigns
+      tags: [Campaigns]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: ids
+          schema:
+            type: string
+          description: Comma-separated list of campaign IDs to filter
+        - in: query
+          name: playerId
+          schema:
+            type: integer
+          description: Filter campaigns by player ID
+      responses:
+        '200':
+          description: List of campaigns retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Campaign'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new campaign
+      tags: [Campaigns]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignDto'
+      responses:
+        '201':
+          description: Campaign created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/campaigns/{id}:
+    get:
+      summary: Get campaign by ID
+      tags: [Campaigns]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Campaign ID
+        - in: query
+          name: includePlayers
+          schema:
+            type: boolean
+            default: false
+          description: Include players in the response
+      responses:
+        '200':
+          description: Campaign retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campaign not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a campaign
+      tags: [Campaigns]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Campaign ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCampaignDto'
+      responses:
+        '200':
+          description: Campaign updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campaign not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a campaign
+      tags: [Campaigns]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Campaign ID
+      responses:
+        '204':
+          description: Campaign deleted successfully
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campaign not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/campaigns/{id}/players:
+    post:
+      summary: Add a player to a campaign
+      tags: [Campaigns]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Campaign ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddPlayerToCampaignDto'
+      responses:
+        '201':
+          description: Player added to campaign successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: 'Player added to campaign successfully'
+        '400':
+          description: Invalid ID format or missing playerId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campaign or player not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/campaigns/{id}/players/{playerId}:
+    delete:
+      summary: Remove a player from a campaign
+      tags: [Campaigns]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Campaign ID
+        - in: path
+          name: playerId
+          required: true
+          schema:
+            type: integer
+          description: Player user ID
+      responses:
+        '204':
+          description: Player removed from campaign successfully
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Campaign or player not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Campaign unique identifier
+        name:
+          type: string
+          description: Campaign name
+        description:
+          type: string
+          description: Campaign description
+        ownerId:
+          type: integer
+          description: Campaign owner (Game Master) user ID
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/CampaignPlayer'
+          description: Campaign players
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CampaignPlayer:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: Player user ID
+        role:
+          type: string
+          enum: [PLAYER, GM]
+          description: Player role in campaign
+        user:
+          $ref: '#/components/schemas/User'
+
+    CreateCampaignDto:
+      type: object
+      required:
+        - name
+        - ownerId
+      properties:
+        name:
+          type: string
+          description: Campaign name
+        description:
+          type: string
+          description: Campaign description
+        ownerId:
+          type: integer
+          description: Campaign owner (Game Master) user ID
+
+    UpdateCampaignDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Campaign name
+        description:
+          type: string
+          description: Campaign description
+
+    AddPlayerToCampaignDto:
+      type: object
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: integer
+          description: Player user ID
+        role:
+          type: string
+          enum: [PLAYER, GM]
+          description: Player role in campaign
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: User unique identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+        username:
+          type: string
+          description: User username
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: HTTP status code
+
+  tags:
+    - name: Campaigns
+      description: Campaign management endpoints

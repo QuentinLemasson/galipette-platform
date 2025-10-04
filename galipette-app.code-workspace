@@ -1,0 +1,8 @@
+{
+  "folders": [{ "path": "galipette-backend" }, { "path": "galipette-portal" }],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "eslint.validate": ["javascript", "typescript", "typescriptreact"],
+    "powershell.cwd": "galipette-portal"
+  }
+}

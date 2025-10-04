@@ -1,0 +1,561 @@
+openapi: 3.0.0
+info:
+  title: Galipette Characters API
+  version: 1.0.0
+  description: API documentation for character management in the Galipette RPG platform
+
+paths:
+  /api/characters:
+    get:
+      summary: Get all characters
+      tags: [Characters]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: ids
+          schema:
+            type: string
+          description: Comma-separated list of character IDs to filter
+        - in: query
+          name: campaignId
+          schema:
+            type: integer
+          description: Filter characters by campaign ID
+        - in: query
+          name: playerId
+          schema:
+            type: integer
+          description: Filter characters by player ID
+      responses:
+        '200':
+          description: List of characters retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Character'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new character
+      tags: [Characters]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCharacterDto'
+      responses:
+        '201':
+          description: Character created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Character'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/characters/{id}:
+    get:
+      summary: Get character by ID
+      tags: [Characters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+        - in: query
+          name: includeDetails
+          schema:
+            type: boolean
+            default: false
+          description: Include detailed character information
+      responses:
+        '200':
+          description: Character retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Character'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a character
+      tags: [Characters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCharacterDto'
+      responses:
+        '200':
+          description: Character updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Character'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a character
+      tags: [Characters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      responses:
+        '204':
+          description: Character deleted successfully
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/characters/{id}/attributes:
+    patch:
+      summary: Update character attributes
+      tags: [Characters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCharacterAttributesDto'
+      responses:
+        '200':
+          description: Character attributes updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: Updated attributes
+        '400':
+          description: Invalid ID format or attribute data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/characters/{id}/attributes/{attrType}:
+    patch:
+      summary: Update a single character attribute
+      tags: [Characters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Character ID
+        - in: path
+          name: attrType
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                STRENGTH,
+                DEXTERITY,
+                CONSTITUTION,
+                AGILITY,
+                PERCEPTION,
+                WILLPOWER,
+                INTELLIGENCE,
+                CHARISMA,
+                POWER,
+                SPIRITUALITY,
+              ]
+          description: Attribute type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - value
+              properties:
+                value:
+                  type: integer
+                  description: New attribute value
+      responses:
+        '200':
+          description: Character attribute updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: Updated attribute
+        '400':
+          description: Invalid ID format or attribute value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Character not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Character:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Character unique identifier
+        name:
+          type: string
+          description: Character name
+        raceId:
+          type: integer
+          description: Character race ID
+        race:
+          $ref: '#/components/schemas/Race'
+        skillPoints:
+          type: integer
+          description: Available skill points
+        hitPoints:
+          type: integer
+          description: Current hit points
+        maxHitPoints:
+          type: integer
+          description: Maximum hit points
+        userId:
+          type: integer
+          description: Character owner (player) user ID
+        campaignId:
+          type: integer
+          description: Campaign ID
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/CharacterAttribute'
+          description: Character attributes
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CharacterAttribute:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Attribute unique identifier
+        characterId:
+          type: integer
+          description: Character ID
+        type:
+          type: string
+          enum:
+            [
+              STRENGTH,
+              DEXTERITY,
+              CONSTITUTION,
+              AGILITY,
+              PERCEPTION,
+              WILLPOWER,
+              INTELLIGENCE,
+              CHARISMA,
+              POWER,
+              SPIRITUALITY,
+            ]
+          description: Attribute type
+        value:
+          type: integer
+          description: Attribute value
+
+    Race:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Race unique identifier
+        name:
+          type: string
+          description: Race name
+        description:
+          type: string
+          description: Race description
+
+    CreateCharacterDto:
+      type: object
+      required:
+        - name
+        - raceId
+        - userId
+        - campaignId
+        - hitPoints
+        - maxHitPoints
+      properties:
+        name:
+          type: string
+          description: Character name
+        raceId:
+          type: integer
+          description: Character race ID
+        userId:
+          type: integer
+          description: Character owner (player) user ID
+        campaignId:
+          type: integer
+          description: Campaign ID
+        skillPoints:
+          type: integer
+          default: 0
+          description: Available skill points
+        hitPoints:
+          type: integer
+          description: Current hit points
+        maxHitPoints:
+          type: integer
+          description: Maximum hit points
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  [
+                    STRENGTH,
+                    DEXTERITY,
+                    CONSTITUTION,
+                    AGILITY,
+                    PERCEPTION,
+                    WILLPOWER,
+                    INTELLIGENCE,
+                    CHARISMA,
+                    POWER,
+                    SPIRITUALITY,
+                  ]
+              value:
+                type: integer
+          description: Character attributes
+
+    UpdateCharacterDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Character name
+        skillPoints:
+          type: integer
+          description: Available skill points
+        hitPoints:
+          type: integer
+          description: Current hit points
+        maxHitPoints:
+          type: integer
+          description: Maximum hit points
+
+    UpdateCharacterAttributesDto:
+      type: object
+      properties:
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  [
+                    STRENGTH,
+                    DEXTERITY,
+                    CONSTITUTION,
+                    AGILITY,
+                    PERCEPTION,
+                    WILLPOWER,
+                    INTELLIGENCE,
+                    CHARISMA,
+                    POWER,
+                    SPIRITUALITY,
+                  ]
+              value:
+                type: integer
+          description: Character attributes to update
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: HTTP status code
+
+  tags:
+    - name: Characters
+      description: Character management endpoints

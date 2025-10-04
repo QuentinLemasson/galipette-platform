@@ -1,0 +1,281 @@
+openapi: 3.0.0
+info:
+  title: Galipette Rules API
+  version: 1.0.0
+  description: API documentation for rule management in the Galipette RPG platform
+
+paths:
+  /api/rules:
+    get:
+      summary: Get all rules
+      tags: [Rules]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+      responses:
+        '200':
+          description: List of rules retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Rule'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new rule
+      tags: [Rules]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRuleDto'
+      responses:
+        '201':
+          description: Rule created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Rule'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/rules/{key}:
+    get:
+      summary: Get rule by key
+      tags: [Rules]
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+          description: Rule key
+      responses:
+        '200':
+          description: Rule retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Rule'
+        '400':
+          description: Invalid key format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a rule
+      tags: [Rules]
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+          description: Rule key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRuleDto'
+      responses:
+        '200':
+          description: Rule updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Rule'
+        '400':
+          description: Invalid key format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a rule
+      tags: [Rules]
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema:
+            type: string
+          description: Rule key
+      responses:
+        '204':
+          description: Rule deleted successfully
+        '400':
+          description: Invalid key format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Rule not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Rule:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Rule unique identifier
+        key:
+          type: string
+          description: Rule unique key
+        data:
+          type: object
+          description: Rule data (JSON)
+        description:
+          type: string
+          description: Rule description
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateRuleDto:
+      type: object
+      required:
+        - key
+        - data
+      properties:
+        key:
+          type: string
+          description: Rule unique key
+        data:
+          type: object
+          description: Rule data (JSON)
+        description:
+          type: string
+          description: Rule description
+
+    UpdateRuleDto:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Rule data (JSON)
+        description:
+          type: string
+          description: Rule description
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: HTTP status code
+
+  tags:
+    - name: Rules
+      description: Rule management endpoints

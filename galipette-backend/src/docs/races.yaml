@@ -1,0 +1,291 @@
+openapi: 3.0.0
+info:
+  title: Galipette Races API
+  version: 1.0.0
+  description: API documentation for race management in the Galipette RPG platform
+
+paths:
+  /api/races:
+    get:
+      summary: Get all races
+      tags: [Races]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Number of items per page
+        - in: query
+          name: ids
+          schema:
+            type: string
+          description: Comma-separated list of race IDs to filter
+      responses:
+        '200':
+          description: List of races retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Race'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Create a new race
+      tags: [Races]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRaceDto'
+      responses:
+        '201':
+          description: Race created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Race'
+        '400':
+          description: Bad request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/races/{id}:
+    get:
+      summary: Get race by ID
+      tags: [Races]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Race ID
+      responses:
+        '200':
+          description: Race retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Race'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Race not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update a race
+      tags: [Races]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Race ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRaceDto'
+      responses:
+        '200':
+          description: Race updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Race'
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Race not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a race
+      tags: [Races]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Race ID
+      responses:
+        '204':
+          description: Race deleted successfully
+        '400':
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Race not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Race:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Race unique identifier
+        name:
+          type: string
+          description: Race name
+        description:
+          type: string
+          description: Race description
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Character'
+          description: Characters of this race
+
+    Character:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Character unique identifier
+        name:
+          type: string
+          description: Character name
+        raceId:
+          type: integer
+          description: Character race ID
+
+    CreateRaceDto:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Race name
+        description:
+          type: string
+          description: Race description
+
+    UpdateRaceDto:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Race name
+        description:
+          type: string
+          description: Race description
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        status:
+          type: integer
+          description: HTTP status code
+
+  tags:
+    - name: Races
+      description: Race management endpoints

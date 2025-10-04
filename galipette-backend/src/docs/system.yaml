@@ -1,0 +1,36 @@
+openapi: 3.0.0
+info:
+  title: Galipette System API
+  version: 1.0.0
+  description: API documentation for system endpoints in the Galipette RPG platform
+
+paths:
+  /api/health:
+    get:
+      summary: Health check endpoint
+      tags: [System]
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: 'ok'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Service health status
+          example: 'ok'
+
+  tags:
+    - name: System
+      description: System health and status endpoints
