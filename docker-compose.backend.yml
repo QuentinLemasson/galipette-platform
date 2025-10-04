@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: galipette-postgres
+    container_name: galipette-postgres-only
     restart: unless-stopped
     environment:
       POSTGRES_DB: galipette_db
@@ -13,18 +13,17 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d
+      - postgres_data_only:/var/lib/postgresql/data
+      - ./galipette-backend/init-db:/docker-entrypoint-initdb.d
     networks:
       - galipette-network
 
-  # Backend API Server
+  # Backend API Server (Development)
   backend:
-    image: galipette-backend-dev
     build:
       context: .
-      dockerfile: Dockerfile.dev
-    container_name: galipette-backend
+      dockerfile: galipette-backend/Dockerfile.dev
+    container_name: galipette-backend-only
     restart: unless-stopped
     environment:
       NODE_ENV: development
@@ -35,12 +34,17 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - .:/app
+      - ./galipette-backend:/app/galipette-backend
+      - ./galipette-shared-lib:/app/galipette-shared-lib
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - backend_node_modules_only:/app/node_modules
     depends_on:
       - postgres
     networks:
       - galipette-network
-    command: npm run dev
+    # Uses start-dev.sh which generates Prisma client at runtime
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
       interval: 30s
@@ -49,7 +53,8 @@ services:
       start_period: 40s
 
 volumes:
-  postgres_data:
+  postgres_data_only:
+  backend_node_modules_only:
 
 networks:
   galipette-network:

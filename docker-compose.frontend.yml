@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Frontend Portal (Development)
+  frontend:
+    build:
+      context: .
+      dockerfile: galipette-portal/Dockerfile.dev
+    container_name: galipette-frontend-only
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./galipette-portal:/app/galipette-portal
+      - ./galipette-shared-lib:/app/galipette-shared-lib
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - frontend_node_modules_only:/app/node_modules
+    networks:
+      - galipette-network
+    command: npm run dev --workspace=galipette-portal
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5173']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  frontend_node_modules_only:
+
+networks:
+  galipette-network:
+    driver: bridge

@@ -20,6 +20,8 @@ export default defineConfig({
       '@/ui': './src/common/ui',
       '@/lib': './src/common/utils',
       '@/hooks': './src/common/hooks',
+      // Shared library alias
+      '@shared': '../galipette-shared-lib/types',
     },
   },
   server: {

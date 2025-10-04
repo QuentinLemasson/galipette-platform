@@ -1,23 +1,36 @@
-# Development Dockerfile (Non-Alpine)
-FROM node:20
+# Development Dockerfile for Galipette Portal
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Install build dependencies for native modules (lightningcss, etc.)
+RUN apk add --no-cache \
+    curl \
+    python3 \
+    make \
+    g++ \
+    git
 
-# Install all dependencies
+# Copy package files for workspace
+COPY package*.json ./
+COPY galipette-portal/package*.json ./galipette-portal/
+COPY galipette-shared-lib/package*.json ./galipette-shared-lib/
+
+# Install workspace dependencies
 RUN npm ci
 
+# Copy TypeScript configuration (required for path aliases)
+COPY tsconfig.base.json ./
+
 # Copy source code
-COPY . .
+COPY galipette-portal ./galipette-portal
+COPY galipette-shared-lib ./galipette-shared-lib
 
-# Isolate node_modules in a volume to prevent it from being overwritten by the host mount.
-# This ensures that the linux-specific binaries installed during the build are used.
-VOLUME /app/node_modules
+# Make startup script executable
+RUN chmod +x galipette-portal/scripts/start-dev.sh
 
-# Expose port 5173 (Vite default)
+# Expose Vite dev server port
 EXPOSE 5173
 
-# Start development server
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Start development server with native module rebuild at runtime
+CMD ["sh", "galipette-portal/scripts/start-dev.sh"]

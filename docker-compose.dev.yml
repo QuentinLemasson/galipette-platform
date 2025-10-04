@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: galipette-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: galipette_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./galipette-backend/init-db:/docker-entrypoint-initdb.d
+    networks:
+      - galipette-network
+
+  # Backend API Server (Development)
+  backend:
+    build:
+      context: .
+      dockerfile: galipette-backend/Dockerfile.dev
+    container_name: galipette-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/galipette_db?schema=public
+      CORS_ORIGIN: http://localhost:5173
+      LOG_LEVEL: info
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./galipette-backend:/app/galipette-backend
+      - ./galipette-shared-lib:/app/galipette-shared-lib
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - backend_node_modules_dev:/app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - galipette-network
+    # Uses start-dev.sh which generates Prisma client at runtime
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Portal (Development)
+  frontend:
+    build:
+      context: .
+      dockerfile: galipette-portal/Dockerfile.dev
+    container_name: galipette-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./galipette-portal:/app/galipette-portal
+      - ./galipette-shared-lib:/app/galipette-shared-lib
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+      - frontend_node_modules_dev:/app/node_modules
+    networks:
+      - galipette-network
+    # Uses start-dev.sh which rebuilds native modules (lightningcss) at runtime
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5173']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data_dev:
+  backend_node_modules_dev:
+  frontend_node_modules_dev:
+
+networks:
+  galipette-network:
+    driver: bridge
