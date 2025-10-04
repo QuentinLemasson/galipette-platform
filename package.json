@@ -1,0 +1,36 @@
+{
+  "name": "galipette-cendree-platform",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint 'galipette-portal/src/**/*.{ts,tsx}' 'galipette-backend/src/**/*.{ts,tsx}' 'galipette-shared-lib/types/**/*.{ts,tsx}' --fix",
+    "lint:back": "eslint 'galipette-backend/src/**/*.{ts,tsx}' --fix",
+    "lint:front": "eslint 'galipette-portal/src/**/*.{ts,tsx}' --fix",
+    "lint:shared": "eslint 'galipette-shared-lib/types/**/*.{ts,tsx}' --fix",
+    "format": "prettier --write 'galipette-portal/src/**/*.{ts,tsx,js,json}' 'galipette-backend/src/**/*.{ts,tsx,js,json}' 'galipette-shared-lib/types/**/*.{ts,tsx,js,json}'",
+    "format:back": "prettier --write 'galipette-backend/src/**/*.{ts,tsx,js,json}'",
+    "format:front": "prettier --write 'galipette-portal/src/**/*.{ts,tsx,js,json}'",
+    "format:shared": "prettier --write 'galipette-shared-lib/types/**/*.{ts,tsx,js,json}'"
+  },
+  "private": true,
+  "workspaces": [
+    "galipette-portal",
+    "galipette-backend",
+    "galipette-shared-lib"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react-hooks": "^6.1.1",
+    "eslint-plugin-react-refresh": "^0.4.23",
+    "globals": "^16.4.0",
+    "typescript-eslint": "^8.45.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@galipette/shared",
+  "version": "1.0.0",
+  "description": "Shared library for the Galipette Cendree TTRPG platform",
+  "main": "types/index.ts",
+  "types": "types/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

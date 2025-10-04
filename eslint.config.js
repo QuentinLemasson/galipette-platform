@@ -18,8 +18,16 @@ export default defineConfig([
       reactRefresh.configs.vite,
       prettierConfig,
     ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'module',
+      globals: { ...globals.browser, ...globals.node },
+    },
     plugins: {
+      '@typescript-eslint': tseslint,
       prettier,
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
     },
     rules: {
       'prettier/prettier': 'error',

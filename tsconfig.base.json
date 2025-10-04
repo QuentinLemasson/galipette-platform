@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./galipette-portal/src/*"],
+      "@/app/*": ["./galipette-portal/src/app/*"],
+      "@/common/*": ["./galipette-portal/src/common/*"],
+      "@/features/*": ["./galipette-portal/src/features/*"],
+      "@/assets/*": ["./galipette-portal/src/assets/*"],
+      "@/test/*": ["./galipette-portal/src/test/*"],
+      // Shadcn aliases
+      "@/components/*": ["./galipette-portal/src/common/*"],
+      "@/utils": ["./galipette-portal/src/common/utils/shadcn.util"],
+      "@/ui/*": ["./galipette-portal/src/common/ui/*"],
+      "@/lib/*": ["./galipette-portal/src/common/utils/*"],
+      "@/hooks/*": ["./galipette-portal/src/common/hooks/*"],
+      // Shared
+      "@shared/*": ["./galipette-shared-lib/types/*"]
+    }
+  }
+}
