@@ -12,15 +12,16 @@
 
 ## 🔹 Campaigns
 
-| Method & Endpoint                         | Description                                 | Notes / Filters         |
-| ----------------------------------------- | ------------------------------------------- | ----------------------- |
-| `GET /campaigns?fields=...`               | List all campaigns                          | Filter: `?playerId=xxx` |
-| `GET /campaigns/:id?fields=...`           | Get campaign details (players + characters) |                         |
-| `POST /campaigns`                         | Create a new campaign                       |                         |
-| `PATCH /campaigns/:id`                    | Update a campaign                           |                         |
-| `DELETE /campaigns/:id`                   | Delete a campaign                           |                         |
-| `POST /campaigns/:id/players`             | Add a player to a campaign (pivot)          |                         |
-| `DELETE /campaigns/:id/players/:playerId` | Remove a player from a campaign             |                         |
+| Method & Endpoint                         | Description                              | Notes / Filters         |
+| ----------------------------------------- | ---------------------------------------- | ----------------------- |
+| `GET /campaigns?fields=...`               | List all campaigns (includes GM info)    | Filter: `?playerId=xxx` |
+| `GET /campaigns/:id?fields=...`           | Get campaign details (players + GM info) |                         |
+| `POST /campaigns`                         | Create a new campaign                    | Accepts `status` field  |
+| `PATCH /campaigns/:id`                    | Update a campaign                        | Can update `status`     |
+| `DELETE /campaigns/:id`                   | Delete a campaign                        |                         |
+| `GET /campaigns/:id/players`              | Get all players in a campaign            |                         |
+| `POST /campaigns/:id/players`             | Add a player to a campaign (pivot)       |                         |
+| `DELETE /campaigns/:id/players/:playerId` | Remove a player from a campaign          |                         |
 
 ---
 

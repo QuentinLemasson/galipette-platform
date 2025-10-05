@@ -15,7 +15,11 @@ router.delete('/:id', campaignController.deleteCampaign);
 /**
  * @route /api/campaigns/:id/players
  */
+router.get('/:id/players', campaignController.getCampaignPlayers);
 router.post('/:id/players', campaignController.addPlayerToCampaign);
-router.delete('/:id/players/:playerId', campaignController.removePlayerFromCampaign);
+router.delete(
+  '/:id/players/:playerId',
+  campaignController.removePlayerFromCampaign
+);
 
 export default router;

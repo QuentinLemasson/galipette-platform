@@ -17,11 +17,13 @@ export class CampaignController {
   async getAllCampaigns(req: Request, res: Response): Promise<void> {
     try {
       // Parse query parameters
-      const playerId = req.query.playerId ? parseInt(req.query.playerId as string) : undefined;
+      const playerId = req.query.playerId
+        ? parseInt(req.query.playerId as string)
+        : undefined;
       const ids = parseIdsParam(req.query.ids as string);
       const { skip, take } = parsePaginationParams(
         req.query.page as string,
-        req.query.limit as string,
+        req.query.limit as string
       );
 
       // Get campaigns from service
@@ -32,8 +34,13 @@ export class CampaignController {
         take,
       });
 
-      // Map to DTOs
-      const campaignDtos = campaigns.map((c) => mapToCampaignDto(c));
+      // Map to DTOs with players (to include GM info)
+      const campaignDtos = await Promise.all(
+        campaigns.map(async c => {
+          const players = await campaignService.getCampaignPlayers(c.id);
+          return mapToCampaignDto(c, players);
+        })
+      );
 
       // Send response with pagination metadata
       res.status(200).json(
@@ -42,7 +49,7 @@ export class CampaignController {
           limit: take,
           total: count,
           totalPages: Math.ceil(count / take),
-        }),
+        })
       );
     } catch (error) {
       res.status(500).json(formatError('Failed to retrieve campaigns'));
@@ -60,17 +67,11 @@ export class CampaignController {
         throw new ApiError(400, 'Invalid ID format');
       }
 
-      // Determine if we should include players
-      const includePlayers = req.query.includePlayers === 'true';
-
       // Get campaign
-      const campaign = await campaignService.getCampaignById(id, includePlayers);
+      const campaign = await campaignService.getCampaignById(id);
 
-      // Get players if needed but not already included
-      let players;
-      if (includePlayers) {
-        players = await campaignService.getCampaignPlayers(id);
-      }
+      // Always get players to include GM info
+      const players = await campaignService.getCampaignPlayers(id);
 
       res.status(200).json(formatSuccess(mapToCampaignDto(campaign, players)));
     } catch (error) {
@@ -78,6 +79,30 @@ export class CampaignController {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to retrieve campaign'));
+      }
+    }
+  }
+
+  /**
+   * Get all players in a campaign
+   */
+  async getCampaignPlayers(req: Request, res: Response): Promise<void> {
+    try {
+      const campaignId = parseInt(req.params.id);
+
+      if (isNaN(campaignId)) {
+        throw new ApiError(400, 'Invalid campaign ID format');
+      }
+
+      const players = await campaignService.getCampaignPlayers(campaignId);
+      res.status(200).json(formatSuccess(players));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json(formatError(error.message));
+      } else {
+        res
+          .status(500)
+          .json(formatError('Failed to retrieve campaign players'));
       }
     }
   }
@@ -117,7 +142,10 @@ export class CampaignController {
         throw new ApiError(400, 'Invalid ID format');
       }
 
-      const updatedCampaign = await campaignService.updateCampaign(id, campaignData);
+      const updatedCampaign = await campaignService.updateCampaign(
+        id,
+        campaignData
+      );
       res.status(200).json(formatSuccess(mapToCampaignDto(updatedCampaign)));
     } catch (error) {
       if (error instanceof ApiError) {
@@ -167,7 +195,9 @@ export class CampaignController {
       }
 
       await campaignService.addPlayerToCampaign(campaignId, playerData);
-      res.status(201).json(formatSuccess({ message: 'Player added to campaign' }));
+      res
+        .status(201)
+        .json(formatSuccess({ message: 'Player added to campaign' }));
     } catch (error) {
       if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
@@ -195,7 +225,9 @@ export class CampaignController {
       if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
-        res.status(500).json(formatError('Failed to remove player from campaign'));
+        res
+          .status(500)
+          .json(formatError('Failed to remove player from campaign'));
       }
     }
   }

@@ -28,6 +28,7 @@ model Campaign {
   id          Int                @id @default(autoincrement()) // Unique campaign ID
   name        String                                            // Campaign name
   description String?                                           // Optional description
+  status      CampaignStatus     @default(ACTIVE)              // Campaign status
   characters  Character[]        // Characters in this campaign
   players     CampaignUser[]     // Linked users (players/GMs)
   createdAt   DateTime           @default(now())               // Creation timestamp
@@ -47,6 +48,12 @@ model CampaignUser {
 enum CampaignRole {
   PLAYER   // Regular player
   GM       // Game Master
+}
+
+enum CampaignStatus {
+  ACTIVE   // Campaign is currently active
+  PAUSED   // Campaign is temporarily paused
+  ENDED    // Campaign has ended
 }
 
 // ===================================================
