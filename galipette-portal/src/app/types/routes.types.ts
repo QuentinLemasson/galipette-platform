@@ -1,3 +1,5 @@
+import type { LucideIcon } from 'lucide-react';
+
 /**
  * Shared routing primitives used across the application.
  *
@@ -12,6 +14,29 @@ export type RoutePermissions = string[];
  */
 export type RouteParams = Record<string, string>;
 
+export enum RouteSlot {
+  NAVBAR = 'navbar',
+  ERROR = 'error',
+}
+
+export enum RouteTags {
+  // ** Core Tags **
+  CORE = 'core',
+  HOME = 'home',
+  ERROR = 'error',
+  DASHBOARD = 'dashboard',
+  EDITOR = 'editor',
+  //** Feature Tags **
+  CAMPAIGNS = 'campaign',
+  CHARACTERS = 'character',
+  // ** For Development Purposes **
+  EXAMPLE = 'example',
+}
+
+export type RouteComponent =
+  | React.ComponentType
+  | React.LazyExoticComponent<React.ComponentType>;
+
 /**
  * Route metadata contract.
  * - path: absolute pathname including dynamic placeholders
@@ -23,8 +48,12 @@ export type RouteConfig = {
   path: string;
   displayName: string;
   description: string;
+  component: RouteComponent;
+  icon?: LucideIcon;
   permissions: RoutePermissions;
   build?: (params: RouteParams) => string;
+  slots: RouteSlot[];
+  tags: RouteTags[];
 };
 
 /**

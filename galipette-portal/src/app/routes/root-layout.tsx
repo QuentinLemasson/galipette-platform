@@ -6,7 +6,8 @@
  */
 import { Suspense } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { PAGES } from './config/pages';
+import { getPagesBySlot, PAGES } from './config/pages';
+import { RouteSlot } from '../types/routes.types';
 
 /**
  * App shell providing header, navigation and content outlet.
@@ -22,24 +23,14 @@ export function RootLayout() {
             Galipette Portal
           </Link>
           <nav className="flex items-center gap-4 text-sm">
-            <NavLink
-              to={PAGES.HOME.path}
-              className={({ isActive }) => (isActive ? 'underline' : '')}
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to={PAGES.DASHBOARD.path}
-              className={({ isActive }) => (isActive ? 'underline' : '')}
-            >
-              Dashboard
-            </NavLink>
-            <NavLink
-              to={PAGES.CHARACTERS.path}
-              className={({ isActive }) => (isActive ? 'underline' : '')}
-            >
-              Characters
-            </NavLink>
+            {getPagesBySlot(RouteSlot.NAVBAR).map(page => (
+              <NavLink
+                to={page.path}
+                className={({ isActive }) => (isActive ? 'underline' : '')}
+              >
+                {page.displayName}
+              </NavLink>
+            ))}
           </nav>
         </div>
       </header>

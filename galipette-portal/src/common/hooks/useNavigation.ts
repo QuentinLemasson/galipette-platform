@@ -14,7 +14,7 @@
  */
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { PAGES } from '@/app/routes/config/pages';
-import type { RouteConfig, RouteParams } from '@/app/types/routes';
+import type { RouteConfig, RouteParams } from '@/app/types/routes.types';
 import type { NavigationApi, NavigationRoute } from '@/common/types/navigation';
 
 /**

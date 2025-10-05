@@ -2,7 +2,7 @@
  * Navigation types build on top of route config to expose a declarative
  * API for moving around the app, reading active state and UI metadata.
  */
-import type { RouteConfig } from '@/app/types/routes';
+import type { RouteConfig } from '@/app/types/routes.types';
 import type { PAGES } from '@/app/routes/config/pages';
 
 export type PageKey = keyof typeof PAGES;
