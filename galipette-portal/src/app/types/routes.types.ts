@@ -12,7 +12,7 @@ export type RoutePermissions = string[];
  * Parameter bag for dynamic routes. Keys map to placeholder names
  * present in a route path (e.g. "/characters/:characterId").
  */
-export type RouteParams = Record<string, string>;
+export type RouteParams = Record<string, string | number>;
 
 export enum RouteSlot {
   NAVBAR = 'navbar',

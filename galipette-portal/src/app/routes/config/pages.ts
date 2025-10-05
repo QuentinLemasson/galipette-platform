@@ -20,12 +20,20 @@ import { lazy } from 'react';
 // Lazy loaded components
 const HomePage = lazy(() => import('../screens/HomePage'));
 const DashboardPage = lazy(() => import('../screens/DashboardPage'));
+// Campaign feature screens
+const CampaignListPage = lazy(
+  () => import('@/features/campaign/screens/CampaignListPage')
+);
 const CampaignDashboardPage = lazy(
-  () => import('../screens/CampainDashboard.page')
+  () => import('@/features/campaign/screens/CampaignDashboardPage')
 );
 const CampaignManagementPage = lazy(
-  () => import('../screens/CampainManagment.page')
+  () => import('@/features/campaign/screens/CampaignManagementPage')
 );
+const CampaignCreatePage = lazy(
+  () => import('@/features/campaign/screens/CampaignCreatePage')
+);
+// Character screens
 const CharactersPage = lazy(() => import('../screens/CharactersPage'));
 const CharacterDetailsPage = lazy(
   () => import('../screens/CharacterDetailsPage')
@@ -57,20 +65,40 @@ export const PAGES = {
   CAMPAIGNS: {
     path: '/campaigns',
     displayName: 'Campaigns',
-    description: 'Campaigns list',
+    description: 'Campaign list',
     permissions: [],
     slots: [RouteSlot.NAVBAR],
     tags: [RouteTags.CAMPAIGNS, RouteTags.DASHBOARD],
+    component: CampaignListPage,
+  },
+  CAMPAIGN_DASHBOARD: {
+    path: '/campaigns/:campaignId/dashboard',
+    displayName: 'Campaign Dashboard',
+    description: 'Campaign overview',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.CAMPAIGNS],
     component: CampaignDashboardPage,
+    build: params => `/campaigns/${params.campaignId}/dashboard`,
   },
   CAMPAIGN_MANAGEMENT: {
-    path: '/campaigns/:campaignId',
+    path: '/campaigns/:campaignId/management',
     displayName: 'Campaign Management',
-    description: 'Campaign management page',
-    permissions: [],
+    description: 'Manage campaign',
+    permissions: [], // TODO: Add GM permission check
     slots: [],
     tags: [RouteTags.CAMPAIGNS, RouteTags.EDITOR],
     component: CampaignManagementPage,
+    build: params => `/campaigns/${params.campaignId}/management`,
+  },
+  CAMPAIGN_CREATE: {
+    path: '/campaigns/new',
+    displayName: 'Create Campaign',
+    description: 'Create a new campaign',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.CAMPAIGNS, RouteTags.EDITOR],
+    component: CampaignCreatePage,
   },
   // ** CHARACTER PAGES **
   CHARACTERS: {
