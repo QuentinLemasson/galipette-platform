@@ -1,8 +1,22 @@
 import { Request, Response } from 'express';
+import { ZodError } from 'zod';
+import {
+  createUserSchema,
+  updateUserSchema,
+  userIdSchema,
+} from '@galipette/shared';
 import userService from './user.service';
-import { mapToUserDto, CreateUserDto, UpdateUserDto } from './user.model';
-import { formatSuccess, formatError } from '../../utils/responseFormatter';
-import { parseFieldsParam, parseIdsParam, parsePaginationParams } from '../../utils/queryParser';
+import { mapToUserDto } from './user.model';
+import {
+  formatSuccess,
+  formatError,
+  formatZodErrors,
+} from '../../utils/responseFormatter';
+import {
+  parseFieldsParam,
+  parseIdsParam,
+  parsePaginationParams,
+} from '../../utils/queryParser';
 import { ApiError } from '../../middleware/errorHandler';
 
 export class UserController {
@@ -15,11 +29,14 @@ export class UserController {
       const ids = parseIdsParam(req.query.ids as string);
       const { skip, take } = parsePaginationParams(
         req.query.page as string,
-        req.query.limit as string,
+        req.query.limit as string
       );
 
       // Get users from service
-      const options: { skip: number; take: number; ids?: number[] } = { skip, take };
+      const options: { skip: number; take: number; ids?: number[] } = {
+        skip,
+        take,
+      };
       if (ids) options.ids = ids;
       const { users, count } = await userService.getAllUsers(options);
 
@@ -33,7 +50,7 @@ export class UserController {
           limit: take,
           total: count,
           totalPages: Math.ceil(count / take),
-        }),
+        })
       );
     } catch (error) {
       res.status(500).json(formatError('Failed to retrieve users'));
@@ -45,11 +62,8 @@ export class UserController {
    */
   async getUserById(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate ID parameter with Zod
+      const { id } = userIdSchema.parse({ id: req.params.id });
 
       const fields = parseFieldsParam(req.query.fields as string);
       const user = await userService.getUserById(id, fields);
@@ -60,7 +74,13 @@ export class UserController {
 
       res.status(200).json(formatSuccess(mapToUserDto(user)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Invalid ID format', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to retrieve user'));
@@ -73,17 +93,20 @@ export class UserController {
    */
   async createUser(req: Request, res: Response): Promise<void> {
     try {
-      const userData: CreateUserDto = req.body;
-
-      // Validate request body
-      if (!userData.email || !userData.username) {
-        throw new ApiError(400, 'Email and username are required');
-      }
+      // Validate request body with Zod
+      const userData = createUserSchema.parse(req.body);
 
       const newUser = await userService.createUser(userData);
       res.status(201).json(formatSuccess(mapToUserDto(newUser)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        // Format Zod validation errors nicely
+        res
+          .status(400)
+          .json(
+            formatError('Validation failed', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else if (error && typeof error === 'object' && 'message' in error) {
         const msg = String((error as any).message);
@@ -103,17 +126,22 @@ export class UserController {
    */
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-      const userData: UpdateUserDto = req.body;
+      // Validate ID parameter with Zod
+      const { id } = userIdSchema.parse({ id: req.params.id });
 
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate request body with Zod
+      const userData = updateUserSchema.parse(req.body);
 
       const updatedUser = await userService.updateUser(id, userData);
       res.status(200).json(formatSuccess(mapToUserDto(updatedUser)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Validation failed', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else if (error && typeof error === 'object' && 'message' in error) {
         const msg = String((error as any).message);
@@ -135,16 +163,19 @@ export class UserController {
    */
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate ID parameter with Zod
+      const { id } = userIdSchema.parse({ id: req.params.id });
 
       await userService.deleteUser(id);
       res.status(204).send();
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Invalid ID format', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else if (error && typeof error === 'object' && 'message' in error) {
         const msg = String((error as any).message);

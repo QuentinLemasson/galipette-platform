@@ -5,7 +5,7 @@ info:
   description: API documentation for user/player management in the Galipette RPG platform
 
 paths:
-  /api/players:
+  /api/users:
     get:
       summary: Get all users/players
       tags: [Users]
@@ -104,7 +104,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/players/{id}:
+  /api/users/{id}:
     get:
       summary: Get user by ID
       tags: [Users]

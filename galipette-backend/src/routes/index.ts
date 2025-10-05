@@ -21,7 +21,7 @@ router.get('/health', (_, res) => {
 });
 
 // API Routes
-router.use('/players', userRoutes);
+router.use('/users', userRoutes);
 router.use('/campaigns', campaignRoutes);
 router.use('/characters', characterRoutes);
 router.use('/races', raceRoutes);

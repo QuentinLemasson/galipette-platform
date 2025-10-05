@@ -3,12 +3,23 @@
   "version": "1.0.0",
   "description": "Shared library for the Galipette Cendree TTRPG platform",
   "main": "types/index.ts",
+  "module": "types/index.ts",
   "types": "types/index.ts",
+  "exports": {
+    ".": {
+      "import": "./types/index.ts",
+      "require": "./types/index.ts",
+      "types": "./types/index.ts"
+    }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "module",
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
 }

@@ -76,11 +76,11 @@ Express server providing the API for the Galipette Cendrée TTRPG Campaign Manag
 
 ### Players (Users)
 
-- `GET /api/players` - List all players
-- `GET /api/players/:id` - Get details of a player
-- `POST /api/players` - Create a new player
-- `PATCH /api/players/:id` - Update player information
-- `DELETE /api/players/:id` - Delete a player
+- `GET /api/users` - List all players
+- `GET /api/users/:id` - Get details of a player
+- `POST /api/users` - Create a new player
+- `PATCH /api/users/:id` - Update player information
+- `DELETE /api/users/:id` - Delete a player
 
 ### Campaigns
 

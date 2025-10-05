@@ -1,3 +1,5 @@
+import { ZodIssue } from 'zod';
+
 /**
  * Standard API success response format
  */
@@ -29,7 +31,7 @@ export interface ApiErrorResponse {
  */
 export function formatSuccess<T>(
   data: T,
-  meta?: ApiSuccessResponse<T>['meta'],
+  meta?: ApiSuccessResponse<T>['meta']
 ): ApiSuccessResponse<T> {
   return {
     status: 'success',
@@ -39,12 +41,40 @@ export function formatSuccess<T>(
 }
 
 /**
+ * Format Zod validation errors into the standard error format
+ * @param issues - Zod validation issues
+ * @returns Formatted errors in Record<string, string[]> format
+ */
+export function formatZodErrors(issues: ZodIssue[]): Record<string, string[]> {
+  const errors: Record<string, string[]> = {};
+
+  for (const issue of issues) {
+    // Convert path to string, filtering out symbols
+    const path = issue.path
+      .filter((p): p is string | number => typeof p !== 'symbol')
+      .join('.');
+    const key = path || 'general';
+
+    if (!errors[key]) {
+      errors[key] = [];
+    }
+
+    errors[key].push(issue.message);
+  }
+
+  return errors;
+}
+
+/**
  * Format an error response
  * @param message - Error message
  * @param errors - Optional validation errors
  * @returns Formatted API error response
  */
-export function formatError(message: string, errors?: Record<string, string[]>): ApiErrorResponse {
+export function formatError(
+  message: string,
+  errors?: Record<string, string[]>
+): ApiErrorResponse {
   return {
     status: 'error',
     message,
@@ -64,7 +94,7 @@ export function formatPaginatedResponse<T>(
   data: T,
   page: number,
   limit: number,
-  total: number,
+  total: number
 ): ApiSuccessResponse<T> {
   return formatSuccess(data, {
     page,

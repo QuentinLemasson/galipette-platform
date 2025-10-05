@@ -4,7 +4,7 @@ import userController from './user.controller';
 const router = Router();
 
 /**
- * @route /api/players
+ * @route /api/users
  */
 router.get('/', userController.getAllUsers);
 router.post('/', userController.createUser);
