@@ -6,7 +6,7 @@
  * - Redirects "/" to HOME
  */
 import { createBrowserRouter, redirect } from 'react-router-dom';
-import { RootLayout } from './root-layout';
+import { RootLayout } from '../components/root-layout';
 import { PAGES } from './config/pages';
 
 /**

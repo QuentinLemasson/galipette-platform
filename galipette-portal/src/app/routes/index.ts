@@ -1,2 +1,2 @@
 export * from './router';
-export * from './root-layout';
+export * from '../components/root-layout';
