@@ -25,9 +25,12 @@ export enum RouteTags {
   HOME = 'home',
   ERROR = 'error',
   DASHBOARD = 'dashboard',
-  EDITOR = 'editor',
+  DETAILS = 'details',
+  CREATE = 'create',
+  EDIT = 'edit',
   //** Feature Tags **
   CAMPAIGNS = 'campaign',
+  ANCESTRIES = 'ancestry',
   CHARACTERS = 'character',
   // ** For Development Purposes **
   EXAMPLE = 'example',

@@ -33,6 +33,19 @@ const CampaignManagementPage = lazy(
 const CampaignCreatePage = lazy(
   () => import('@/features/campaign/screens/CampaignCreatePage')
 );
+// Ancestries feature screens
+const AncestriesListPage = lazy(
+  () => import('@/features/ancestries/screens/ancestriesList.page')
+);
+const AncestriesDetailsPage = lazy(
+  () => import('@/features/ancestries/screens/ancestriesDetails.page')
+);
+const AncestriesCreatePage = lazy(
+  () => import('@/features/ancestries/screens/ancestriesCreate.page')
+);
+const AncestriesEditPage = lazy(
+  () => import('@/features/ancestries/screens/ancestriesEdit.page')
+);
 // Character screens
 const CharactersPage = lazy(() => import('../screens/CharactersPage'));
 const CharacterDetailsPage = lazy(
@@ -87,7 +100,7 @@ export const PAGES = {
     description: 'Manage campaign',
     permissions: [], // TODO: Add GM permission check
     slots: [],
-    tags: [RouteTags.CAMPAIGNS, RouteTags.EDITOR],
+    tags: [RouteTags.CAMPAIGNS, RouteTags.EDIT],
     component: CampaignManagementPage,
     build: params => `/campaigns/${params.campaignId}/management`,
   },
@@ -97,8 +110,47 @@ export const PAGES = {
     description: 'Create a new campaign',
     permissions: [],
     slots: [],
-    tags: [RouteTags.CAMPAIGNS, RouteTags.EDITOR],
+    tags: [RouteTags.CAMPAIGNS, RouteTags.CREATE],
     component: CampaignCreatePage,
+  },
+  // ** ANCESTRY PAGES **
+  ANCESTRIES: {
+    path: '/ancestries',
+    displayName: 'Ancestries',
+    description: 'Ancestries list',
+    permissions: [],
+    slots: [RouteSlot.NAVBAR],
+    tags: [RouteTags.ANCESTRIES, RouteTags.DASHBOARD],
+    component: AncestriesListPage,
+  },
+  ANCESTRY_DETAILS: {
+    path: '/ancestries/:ancestryId',
+    displayName: 'Ancestry Details',
+    description: 'Ancestry details page',
+    permissions: [],
+    build: params => `/ancestries/${params.ancestryId}`,
+    slots: [],
+    tags: [RouteTags.ANCESTRIES, RouteTags.DETAILS],
+    component: AncestriesDetailsPage,
+  },
+  ANCESTRY_CREATE: {
+    path: '/ancestries/new',
+    displayName: 'Create Ancestry',
+    description: 'Create a new ancestry',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.ANCESTRIES, RouteTags.CREATE],
+    component: AncestriesCreatePage,
+  },
+  ANCESTRY_EDIT: {
+    path: '/ancestries/:ancestryId/edit',
+    displayName: 'Edit Ancestry',
+    description: 'Edit an ancestry',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.ANCESTRIES, RouteTags.EDIT],
+    component: AncestriesEditPage,
+    build: params => `/ancestries/${params.ancestryId}/edit`,
   },
   // ** CHARACTER PAGES **
   CHARACTERS: {
@@ -117,7 +169,7 @@ export const PAGES = {
     permissions: [],
     build: params => `/characters/${params.characterId}`,
     slots: [RouteSlot.NAVBAR],
-    tags: [RouteTags.CHARACTERS, RouteTags.EDITOR],
+    tags: [RouteTags.CHARACTERS, RouteTags.DETAILS],
     component: CharacterDetailsPage,
   },
   ERROR_CODE: {
