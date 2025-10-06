@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createPaginatedListSchema } from './common.schema';
 
 // ============================================
 // INPUT VALIDATION SCHEMAS (Request DTOs)
@@ -54,15 +55,10 @@ export const userResponseSchema = z.object({
 /**
  * Schema for paginated user list response
  */
-export const userListResponseSchema = z.object({
-  users: z.array(userResponseSchema),
-  pagination: z.object({
-    page: z.number().int().positive(),
-    limit: z.number().int().positive(),
-    total: z.number().int().nonnegative(),
-    totalPages: z.number().int().nonnegative(),
-  }),
-});
+export const userListResponseSchema = createPaginatedListSchema(
+  userResponseSchema,
+  'users'
+);
 
 // ============================================
 // INFERRED TYPESCRIPT TYPES

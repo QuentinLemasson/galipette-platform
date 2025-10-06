@@ -1,11 +1,17 @@
 import { Request, Response } from 'express';
-import ancestryService from './ancestry.service';
+import { ZodError } from 'zod';
 import {
-  mapToAncestryDto,
-  CreateAncestryDto,
-  UpdateAncestryDto,
-} from './ancestry.model';
-import { formatSuccess, formatError } from '../../utils/responseFormatter';
+  createAncestrySchema,
+  updateAncestrySchema,
+  ancestryIdSchema,
+} from '@galipette/shared';
+import ancestryService from './ancestry.service';
+import { mapToAncestryDto } from './ancestry.model';
+import {
+  formatSuccess,
+  formatError,
+  formatZodErrors,
+} from '../../utils/responseFormatter';
 import { parseIdsParam, parsePaginationParams } from '../../utils/queryParser';
 import { ApiError } from '../../middleware/errorHandler';
 
@@ -53,18 +59,21 @@ export class AncestryController {
    */
   async getAncestryById(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate ID parameter with Zod
+      const { id } = ancestryIdSchema.parse({ id: req.params.id });
 
       // Get ancestry
       const ancestry = await ancestryService.getAncestryById(id);
 
       res.status(200).json(formatSuccess(mapToAncestryDto(ancestry)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Invalid ID format', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to retrieve ancestry'));
@@ -77,17 +86,20 @@ export class AncestryController {
    */
   async createAncestry(req: Request, res: Response): Promise<void> {
     try {
-      const ancestryData: CreateAncestryDto = req.body;
-
-      // Validate request body
-      if (!ancestryData.name) {
-        throw new ApiError(400, 'Ancestry name is required');
-      }
+      // Validate request body with Zod
+      const ancestryData = createAncestrySchema.parse(req.body);
 
       const newAncestry = await ancestryService.createAncestry(ancestryData);
       res.status(201).json(formatSuccess(mapToAncestryDto(newAncestry)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        // Format Zod validation errors nicely
+        res
+          .status(400)
+          .json(
+            formatError('Validation failed', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to create ancestry'));
@@ -100,12 +112,11 @@ export class AncestryController {
    */
   async updateAncestry(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-      const ancestryData: UpdateAncestryDto = req.body;
+      // Validate ID parameter with Zod
+      const { id } = ancestryIdSchema.parse({ id: req.params.id });
 
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate request body with Zod
+      const ancestryData = updateAncestrySchema.parse(req.body);
 
       const updatedAncestry = await ancestryService.updateAncestry(
         id,
@@ -113,7 +124,13 @@ export class AncestryController {
       );
       res.status(200).json(formatSuccess(mapToAncestryDto(updatedAncestry)));
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Validation failed', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to update ancestry'));
@@ -126,16 +143,19 @@ export class AncestryController {
    */
   async deleteAncestry(req: Request, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
-
-      if (isNaN(id)) {
-        throw new ApiError(400, 'Invalid ID format');
-      }
+      // Validate ID parameter with Zod
+      const { id } = ancestryIdSchema.parse({ id: req.params.id });
 
       await ancestryService.deleteAncestry(id);
       res.status(204).send();
     } catch (error) {
-      if (error instanceof ApiError) {
+      if (error instanceof ZodError) {
+        res
+          .status(400)
+          .json(
+            formatError('Invalid ID format', formatZodErrors(error.issues))
+          );
+      } else if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
         res.status(500).json(formatError('Failed to delete ancestry'));

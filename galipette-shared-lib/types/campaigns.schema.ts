@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createPaginatedListSchema } from './common.schema';
 
 // ============================================
 // ENUMS
@@ -112,15 +113,10 @@ export const campaignResponseSchema = z.object({
 /**
  * Schema for paginated campaign list response
  */
-export const campaignListResponseSchema = z.object({
-  campaigns: z.array(campaignResponseSchema),
-  pagination: z.object({
-    page: z.number().int().positive(),
-    limit: z.number().int().positive(),
-    total: z.number().int().nonnegative(),
-    totalPages: z.number().int().nonnegative(),
-  }),
-});
+export const campaignListResponseSchema = createPaginatedListSchema(
+  campaignResponseSchema,
+  'campaigns'
+);
 
 // ============================================
 // INFERRED TYPESCRIPT TYPES
