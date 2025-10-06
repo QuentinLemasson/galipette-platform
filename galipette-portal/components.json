@@ -18,5 +18,8 @@
     "lib": "@/common/utils",
     "hooks": "@/common/hooks"
   },
-  "registries": {}
+  "registries": {
+    "@shadcnblocks": "https://www.shadcnui-blocks.com/{name}.json",
+    "@react-bits": "https://reactbits.dev/r/{name}.json"
+  }
 }

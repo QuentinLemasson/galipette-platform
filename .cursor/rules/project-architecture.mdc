@@ -1,0 +1,165 @@
+---
+alwaysApply: true
+---
+
+- This ruleset provides insights on the project's structure and some of the design choices -
+
+# Galipette Cendrée Platform - Project Architecture
+
+## Overview
+
+Monorepo structure using npm workspaces with three main packages: backend (Express API), frontend (React portal), and shared library (TypeScript types).
+
+## Monorepo Structure
+
+```
+galipette-cendree-platform/
+├── galipette-backend/     # Express.js API server
+├── galipette-portal/      # React frontend application
+├── galipette-shared-lib/  # Shared TypeScript types
+└── package.json           # Root workspace configuration
+```
+
+## Package Details
+
+### Root Workspace (`package.json`)
+
+- **Type**: npm workspace monorepo
+- **Workspaces**: `["galipette-portal", "galipette-backend", "galipette-shared-lib"]`
+- **Scripts**: Linting and formatting across all packages
+- **DevDependencies**: ESLint, Prettier, TypeScript tooling
+
+### Backend (`galipette-backend/`)
+
+- **Framework**: Express.js with TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Architecture**: Module-based (users, campaigns, characters, races, afflictions, rules)
+- **Structure**: Controller → Service → Repository → Model pattern
+- **Features**: REST API, Swagger documentation, CORS, error handling
+
+### Frontend (`galipette-portal/`)
+
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite
+- **UI**: Tailwind CSS + Shadcn/ui components
+- **Architecture**: Feature-first directory structure
+- **State**: Redux Toolkit
+- **Routing**: React Router v7
+
+### Shared Library (`galipette-shared-lib/`)
+
+- **Purpose**: Common TypeScript types and schemas
+- **Exports**: User, campaign, ancestry, and common schemas
+- **Usage**: Imported by both frontend and backend
+
+## Frontend Feature-First Architecture
+
+### Directory Structure
+
+```
+src/
+├── app/                    # Application layer
+│   ├── components/        # App-level components
+│   ├── hooks/            # App-level hooks
+│   ├── services/         # App-level services
+│   └── store/            # Global state management
+│
+├── common/               # Shared layer (reusable across features)
+│   ├── components/       # Generic custom components
+│   ├── ui/              # Shadcn UI components
+│   ├── hooks/           # Generic hooks
+│   ├── utils/           # Utility functions
+│   ├── services/        # Shared services
+│   └── types/           # Shared type definitions
+│
+├── features/            # Feature modules
+│   └── [feature name]/         #  specific feature
+│       ├── components/  # Feature-specific components
+│       ├── hooks/       # Feature-specific hooks
+│       ├── services/   # Feature-specific services
+│       └── types/      # Feature-specific types
+│
+└── assets/             # Static assets
+```
+
+### Layer Responsibilities
+
+#### App Layer (`src/app/`)
+
+- **Purpose**: Application orchestration and global concerns
+- **Contains**: Main App component, routing, global state, app configuration
+- **Examples**: App.tsx, router configuration, global providers
+
+#### Common Layer (`src/common/`)
+
+- **Purpose**: Reusable code across features
+- **Contains**: Generic components, utilities, shared services
+- **Examples**: Button component, API client, utility functions
+- **Rules**: No business logic, framework-agnostic when possible
+
+#### Features Layer (`src/features/`)
+
+- **Purpose**: Business features with domain-specific logic
+- **Contains**: Feature components, hooks, services, types
+- **Examples**: User management, dashboard, authentication
+- **Rules**: Self-contained, no direct feature-to-feature dependencies
+
+### Feature Structure
+
+Each feature contains:
+
+- `components/` - Feature-specific React components
+- `hooks/` - Custom hooks for feature logic
+- `services/` - API calls and business logic
+- `screens/` - Page components
+- `types/` - TypeScript type definitions
+
+### Key Principles
+
+- **Feature Isolation**: No direct dependencies between features
+- **Barrel Exports**: Each layer exports through `index.ts`
+- **Path Aliases**: `@/` for root, `@/features/*` for features
+- **Clear Boundaries**: App → Features → Common hierarchy
+
+## Container Development
+
+### Docker Compose (`docker-compose.dev.yml`)
+
+Development environment runs entirely in containers - no manual commands on host machine.
+
+**Services:**
+
+- `postgres` - PostgreSQL 15 database (port 5432)
+- `backend` - Express API server (port 3000) with hot-reload
+- `frontend` - Vite dev server (port 5173) with hot-reload
+
+**Key Features:**
+
+- Volume mounts for live code synchronization
+- Shared library accessible to both frontend and backend
+- Named volumes for node_modules (prevents host/container conflicts)
+- Automatic Prisma client generation on container startup
+- Native module rebuilding (lightningcss) in container environment
+- Health checks for service readiness
+
+**Workflow:**
+
+- Start: `docker-compose -f docker-compose.dev.yml up`
+- All development happens in containerized environment
+- Code changes sync automatically via volumes
+- No need to run npm install or build commands manually
+
+## Development Workflow
+
+- **Monorepo Commands**: Run from root for workspace-wide operations
+- **Package Commands**: Run from individual packages for specific tasks (or in containers)
+- **Shared Dependencies**: Managed at root level, hoisted to packages
+- **Type Safety**: Shared types ensure consistency across frontend/backend
+
+## Technology Stack
+
+- **Backend**: Node.js, Express, TypeScript, Prisma, PostgreSQL
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, Redux Toolkit
+- **Shared**: TypeScript types and schemas
+- **Tooling**: ESLint, Prettier, npm workspaces
+- **Containers**: Docker Compose for development environment
