@@ -20,7 +20,9 @@ export class CharacterRepository {
   /**
    * Find all characters with pagination and filters
    */
-  async findAll(options?: FindAllOptions): Promise<{ characters: Character[]; count: number }> {
+  async findAll(
+    options?: FindAllOptions
+  ): Promise<{ characters: Character[]; count: number }> {
     const { campaignId, playerId, ids, skip = 0, take = 10 } = options || {};
 
     // Build where conditions
@@ -46,7 +48,7 @@ export class CharacterRepository {
         take,
         orderBy: { id: 'asc' },
         include: {
-          race: true,
+          ancestry: true,
         },
       }),
       prisma.character.count({ where }),
@@ -58,12 +60,15 @@ export class CharacterRepository {
   /**
    * Find character by ID
    */
-  async findById(id: number, includeDetails = false): Promise<Character | null> {
+  async findById(
+    id: number,
+    includeDetails = false
+  ): Promise<Character | null> {
     return prisma.character.findUnique({
       where: { id },
       include: includeDetails
         ? {
-            race: true,
+            ancestry: true,
             attributes: true,
             afflictions: {
               include: {
@@ -72,7 +77,7 @@ export class CharacterRepository {
             },
           }
         : {
-            race: true,
+            ancestry: true,
           },
     });
   }
@@ -83,41 +88,41 @@ export class CharacterRepository {
   async create(data: CreateCharacterDto): Promise<Character> {
     const { attributes, ...characterData } = data;
 
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async tx => {
       // Create the character
       const character = await tx.character.create({
         data: characterData,
         include: {
-          race: true,
+          ancestry: true,
         },
       });
 
       // Add attributes if provided
       if (attributes && attributes.length > 0) {
         await Promise.all(
-          attributes.map((attr) =>
+          attributes.map(attr =>
             tx.characterAttribute.create({
               data: {
                 characterId: character.id,
                 type: attr.type,
                 value: attr.value,
               },
-            }),
-          ),
+            })
+          )
         );
       } else {
         // Create default attributes with value 0
         const attributeTypes = Object.values(AttributeType);
         await Promise.all(
-          attributeTypes.map((type) =>
+          attributeTypes.map(type =>
             tx.characterAttribute.create({
               data: {
                 characterId: character.id,
                 type,
                 value: 0,
               },
-            }),
-          ),
+            })
+          )
         );
       }
 
@@ -133,7 +138,7 @@ export class CharacterRepository {
       where: { id },
       data,
       include: {
-        race: true,
+        ancestry: true,
       },
     });
   }
@@ -163,7 +168,7 @@ export class CharacterRepository {
    */
   async updateAttributes(
     characterId: number,
-    attributes: CharacterAttributeDto[],
+    attributes: CharacterAttributeDto[]
   ): Promise<CharacterAttribute[]> {
     const results: CharacterAttribute[] = [];
     for (const attr of attributes) {
@@ -192,7 +197,7 @@ export class CharacterRepository {
   async updateAttribute(
     characterId: number,
     attributeType: AttributeType,
-    value: number,
+    value: number
   ): Promise<CharacterAttribute> {
     const updateRes = await prisma.characterAttribute.updateMany({
       where: { characterId, type: attributeType },

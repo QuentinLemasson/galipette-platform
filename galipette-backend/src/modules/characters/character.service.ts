@@ -24,7 +24,7 @@ class CharacterService {
    * Get all characters with filtering
    */
   async getAllCharacters(
-    options?: GetAllCharactersOptions,
+    options?: GetAllCharactersOptions
   ): Promise<{ characters: Character[]; count: number }> {
     return characterRepository.findAll(options);
   }
@@ -32,7 +32,10 @@ class CharacterService {
   /**
    * Get character by ID
    */
-  async getCharacterById(id: number, includeDetails = false): Promise<Character> {
+  async getCharacterById(
+    id: number,
+    includeDetails = false
+  ): Promise<Character> {
     const character = await characterRepository.findById(id, includeDetails);
 
     if (!character) {
@@ -61,7 +64,7 @@ class CharacterService {
     // Check if user is part of the campaign
     const isUserInCampaign = await campaignRepository.isUserInCampaign(
       data.campaignId,
-      data.userId,
+      data.userId
     );
     if (!isUserInCampaign) {
       throw new ApiError(403, 'User is not part of this campaign');
@@ -73,7 +76,10 @@ class CharacterService {
   /**
    * Update a character
    */
-  async updateCharacter(id: number, data: UpdateCharacterDto): Promise<Character> {
+  async updateCharacter(
+    id: number,
+    data: UpdateCharacterDto
+  ): Promise<Character> {
     // Check if character exists
     const character = await characterRepository.findById(id);
 
@@ -81,9 +87,9 @@ class CharacterService {
       throw new ApiError(404, 'Character not found');
     }
 
-    // If race is being changed, verify the race exists
-    if (data.raceId) {
-      // In a real app, you'd check if the race exists here
+    // If ancestry is being changed, verify the ancestry exists
+    if (data.ancestryId) {
+      // In a real app, you'd check if the ancestry exists here
     }
 
     return characterRepository.update(id, data);
@@ -106,7 +112,9 @@ class CharacterService {
   /**
    * Get attributes for a character
    */
-  async getCharacterAttributes(characterId: number): Promise<CharacterAttributeDto[]> {
+  async getCharacterAttributes(
+    characterId: number
+  ): Promise<CharacterAttributeDto[]> {
     // Check if character exists
     const character = await characterRepository.findById(characterId);
 
@@ -116,7 +124,7 @@ class CharacterService {
 
     const attributes = await characterRepository.getAttributes(characterId);
 
-    return attributes.map((attr) => ({
+    return attributes.map(attr => ({
       type: attr.type,
       value: attr.value,
     }));
@@ -127,7 +135,7 @@ class CharacterService {
    */
   async updateCharacterAttributes(
     characterId: number,
-    data: UpdateCharacterAttributesDto,
+    data: UpdateCharacterAttributesDto
   ): Promise<CharacterAttributeDto[]> {
     // Check if character exists
     const character = await characterRepository.findById(characterId);
@@ -143,12 +151,14 @@ class CharacterService {
 
     // Check if all attribute types are valid
     const validTypes = Object.values(AttributeType);
-    const invalidTypes = data.attributes.filter((attr) => !validTypes.includes(attr.type));
+    const invalidTypes = data.attributes.filter(
+      attr => !validTypes.includes(attr.type)
+    );
 
     if (invalidTypes.length > 0) {
       throw new ApiError(
         400,
-        `Invalid attribute types: ${invalidTypes.map((attr) => attr.type).join(', ')}`,
+        `Invalid attribute types: ${invalidTypes.map(attr => attr.type).join(', ')}`
       );
     }
 
@@ -163,7 +173,7 @@ class CharacterService {
   async updateCharacterAttribute(
     characterId: number,
     attributeType: AttributeType,
-    value: number,
+    value: number
   ): Promise<CharacterAttributeDto> {
     // Check if character exists
     const character = await characterRepository.findById(characterId);
@@ -180,7 +190,7 @@ class CharacterService {
     const updatedAttr = await characterRepository.updateAttribute(
       characterId,
       attributeType,
-      value,
+      value
     );
 
     return {

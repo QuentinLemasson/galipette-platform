@@ -1,14 +1,14 @@
 openapi: 3.0.0
 info:
-  title: Galipette Races API
+  title: Galipette Ancestries API
   version: 1.0.0
-  description: API documentation for race management in the Galipette RPG platform
+  description: API documentation for ancestry management in the Galipette RPG platform
 
 paths:
-  /api/races:
+  /api/ancestries:
     get:
-      summary: Get all races
-      tags: [Races]
+      summary: Get all ancestries
+      tags: [Ancestries]
       parameters:
         - in: query
           name: page
@@ -29,10 +29,10 @@ paths:
           name: ids
           schema:
             type: string
-          description: Comma-separated list of race IDs to filter
+          description: Comma-separated list of ancestry IDs to filter
       responses:
         '200':
-          description: List of races retrieved successfully
+          description: List of ancestries retrieved successfully
           content:
             application/json:
               schema:
@@ -44,7 +44,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Race'
+                      $ref: '#/components/schemas/Ancestry'
                   meta:
                     type: object
                     properties:
@@ -64,17 +64,17 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     post:
-      summary: Create a new race
-      tags: [Races]
+      summary: Create a new ancestry
+      tags: [Ancestries]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateRaceDto'
+              $ref: '#/components/schemas/CreateAncestryDto'
       responses:
         '201':
-          description: Race created successfully
+          description: Ancestry created successfully
           content:
             application/json:
               schema:
@@ -84,7 +84,7 @@ paths:
                     type: boolean
                     example: true
                   data:
-                    $ref: '#/components/schemas/Race'
+                    $ref: '#/components/schemas/Ancestry'
         '400':
           description: Bad request - missing required fields
           content:
@@ -98,20 +98,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/races/{id}:
+  /api/ancestries/{id}:
     get:
-      summary: Get race by ID
-      tags: [Races]
+      summary: Get ancestry by ID
+      tags: [Ancestries]
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Race ID
+          description: Ancestry ID
       responses:
         '200':
-          description: Race retrieved successfully
+          description: Ancestry retrieved successfully
           content:
             application/json:
               schema:
@@ -121,7 +121,7 @@ paths:
                     type: boolean
                     example: true
                   data:
-                    $ref: '#/components/schemas/Race'
+                    $ref: '#/components/schemas/Ancestry'
         '400':
           description: Invalid ID format
           content:
@@ -129,7 +129,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Race not found
+          description: Ancestry not found
           content:
             application/json:
               schema:
@@ -142,24 +142,24 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     patch:
-      summary: Update a race
-      tags: [Races]
+      summary: Update an ancestry
+      tags: [Ancestries]
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Race ID
+          description: Ancestry ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateRaceDto'
+              $ref: '#/components/schemas/UpdateAncestryDto'
       responses:
         '200':
-          description: Race updated successfully
+          description: Ancestry updated successfully
           content:
             application/json:
               schema:
@@ -169,7 +169,7 @@ paths:
                     type: boolean
                     example: true
                   data:
-                    $ref: '#/components/schemas/Race'
+                    $ref: '#/components/schemas/Ancestry'
         '400':
           description: Invalid ID format
           content:
@@ -177,7 +177,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Race not found
+          description: Ancestry not found
           content:
             application/json:
               schema:
@@ -190,18 +190,18 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     delete:
-      summary: Delete a race
-      tags: [Races]
+      summary: Delete an ancestry
+      tags: [Ancestries]
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Race ID
+          description: Ancestry ID
       responses:
         '204':
-          description: Race deleted successfully
+          description: Ancestry deleted successfully
         '400':
           description: Invalid ID format
           content:
@@ -209,7 +209,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Race not found
+          description: Ancestry not found
           content:
             application/json:
               schema:
@@ -223,23 +223,23 @@ paths:
 
 components:
   schemas:
-    Race:
+    Ancestry:
       type: object
       properties:
         id:
           type: integer
-          description: Race unique identifier
+          description: Ancestry unique identifier
         name:
           type: string
-          description: Race name
+          description: Ancestry name
         description:
           type: string
-          description: Race description
+          description: Ancestry description
         characters:
           type: array
           items:
             $ref: '#/components/schemas/Character'
-          description: Characters of this race
+          description: Characters of this ancestry
 
     Character:
       type: object
@@ -250,31 +250,31 @@ components:
         name:
           type: string
           description: Character name
-        raceId:
+        ancestryId:
           type: integer
-          description: Character race ID
+          description: Character ancestry ID
 
-    CreateRaceDto:
+    CreateAncestryDto:
       type: object
       required:
         - name
       properties:
         name:
           type: string
-          description: Race name
+          description: Ancestry name
         description:
           type: string
-          description: Race description
+          description: Ancestry description
 
-    UpdateRaceDto:
+    UpdateAncestryDto:
       type: object
       properties:
         name:
           type: string
-          description: Race name
+          description: Ancestry name
         description:
           type: string
-          description: Race description
+          description: Ancestry description
 
     Error:
       type: object
@@ -287,5 +287,5 @@ components:
           description: HTTP status code
 
   tags:
-    - name: Races
-      description: Race management endpoints
+    - name: Ancestries
+      description: Ancestry management endpoints

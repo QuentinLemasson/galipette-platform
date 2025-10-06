@@ -92,9 +92,9 @@ const options = {
               type: 'string',
               description: 'Character name',
             },
-            raceId: {
+            ancestryId: {
               type: 'string',
-              description: 'Character race ID',
+              description: 'Character ancestry ID',
             },
             playerId: {
               type: 'string',
@@ -120,34 +120,34 @@ const options = {
             },
           },
         },
-        Race: {
+        Ancestry: {
           type: 'object',
           properties: {
             id: {
               type: 'string',
-              description: 'Race unique identifier',
+              description: 'Ancestry unique identifier',
             },
             name: {
               type: 'string',
-              description: 'Race name',
+              description: 'Ancestry name',
             },
             description: {
               type: 'string',
-              description: 'Race description',
+              description: 'Ancestry description',
             },
             attributes: {
               type: 'object',
-              description: 'Race base attributes',
+              description: 'Ancestry base attributes',
             },
             createdAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Race creation timestamp',
+              description: 'Ancestry creation timestamp',
             },
             updatedAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Race last update timestamp',
+              description: 'Ancestry last update timestamp',
             },
           },
         },
@@ -257,7 +257,7 @@ export const setupSwagger = (app: Application) => {
         explorer: true,
         customCss: '.swagger-ui .topbar { display: none }',
         customSiteTitle: 'Galipette API Documentation',
-      }),
+      })
     );
     console.log('Swagger documentation available at /api-docs');
   } catch (error) {

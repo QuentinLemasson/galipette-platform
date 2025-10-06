@@ -2,7 +2,7 @@ import express from 'express';
 import userRoutes from '../modules/users/user.routes';
 import campaignRoutes from '../modules/campaigns/campaign.routes';
 import characterRoutes from '../modules/characters/character.routes';
-import raceRoutes from '../modules/races/race.routes';
+import ancestryRoutes from '../modules/ancestries/ancestry.routes';
 import {
   afflictionRouter,
   tagRouter,
@@ -24,7 +24,7 @@ router.get('/health', (_, res) => {
 router.use('/users', userRoutes);
 router.use('/campaigns', campaignRoutes);
 router.use('/characters', characterRoutes);
-router.use('/races', raceRoutes);
+router.use('/ancestries', ancestryRoutes);
 router.use('/afflictions', afflictionRouter);
 router.use('/tags', tagRouter);
 router.use('/characters/:id/afflictions', characterAfflictionRouter);

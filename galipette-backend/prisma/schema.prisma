@@ -63,8 +63,8 @@ enum CampaignStatus {
 model Character {
   id            Int                  @id @default(autoincrement()) // Unique character ID
   name          String                                            // Character name
-  race          Race                 @relation(fields: [raceId], references: [id]) // Linked race
-  raceId        Int
+  ancestry      Ancestry             @relation(fields: [ancestryId], references: [id]) // Linked ancestry
+  ancestryId    Int
   skillPoints   Int                  @default(0)                  // Skill points
   hitPoints     Int                                                // Current HP
   maxHitPoints  Int                                                // Max HP
@@ -81,11 +81,11 @@ model Character {
   @@index([campaignId])
 }
 
-model Race {
-  id          Int         @id @default(autoincrement()) // Unique race ID
-  name        String      @unique                      // Race name (unique)
+model Ancestry {
+  id          Int         @id @default(autoincrement()) // Unique ancestry ID
+  name        String      @unique                      // Ancestry name (unique)
   description String?                                   // Optional description
-  characters  Character[]                              // Characters of this race
+  characters  Character[]                              // Characters of this ancestry
 }
 
 model CharacterAttribute {

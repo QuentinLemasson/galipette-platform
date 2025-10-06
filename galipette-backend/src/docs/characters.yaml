@@ -373,11 +373,11 @@ components:
         name:
           type: string
           description: Character name
-        raceId:
+        ancestryId:
           type: integer
-          description: Character race ID
-        race:
-          $ref: '#/components/schemas/Race'
+          description: Character ancestry ID
+        ancestry:
+          $ref: '#/components/schemas/Ancestry'
         skillPoints:
           type: integer
           description: Available skill points
@@ -434,24 +434,24 @@ components:
           type: integer
           description: Attribute value
 
-    Race:
+    Ancestry:
       type: object
       properties:
         id:
           type: integer
-          description: Race unique identifier
+          description: Ancestry unique identifier
         name:
           type: string
-          description: Race name
+          description: Ancestry name
         description:
           type: string
-          description: Race description
+          description: Ancestry description
 
     CreateCharacterDto:
       type: object
       required:
         - name
-        - raceId
+        - ancestryId
         - userId
         - campaignId
         - hitPoints
@@ -460,9 +460,9 @@ components:
         name:
           type: string
           description: Character name
-        raceId:
+        ancestryId:
           type: integer
-          description: Character race ID
+          description: Character ancestry ID
         userId:
           type: integer
           description: Character owner (player) user ID

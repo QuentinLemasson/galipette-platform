@@ -21,11 +21,13 @@ export class CharacterController {
       const campaignId = req.query.campaignId
         ? parseInt(req.query.campaignId as string)
         : undefined;
-      const playerId = req.query.playerId ? parseInt(req.query.playerId as string) : undefined;
+      const playerId = req.query.playerId
+        ? parseInt(req.query.playerId as string)
+        : undefined;
       const ids = parseIdsParam(req.query.ids as string);
       const { skip, take } = parsePaginationParams(
         req.query.page as string,
-        req.query.limit as string,
+        req.query.limit as string
       );
 
       // Get characters from service
@@ -39,10 +41,11 @@ export class CharacterController {
       if (campaignId !== undefined) options.campaignId = campaignId;
       if (playerId !== undefined) options.playerId = playerId;
       if (ids) options.ids = ids;
-      const { characters, count } = await characterService.getAllCharacters(options);
+      const { characters, count } =
+        await characterService.getAllCharacters(options);
 
       // Map to DTOs
-      const characterDtos = characters.map((c) => mapToCharacterDto(c));
+      const characterDtos = characters.map(c => mapToCharacterDto(c));
 
       // Send response with pagination metadata
       res.status(200).json(
@@ -51,7 +54,7 @@ export class CharacterController {
           limit: take,
           total: count,
           totalPages: Math.ceil(count / take),
-        }),
+        })
       );
     } catch (error) {
       res.status(500).json(formatError('Failed to retrieve characters'));
@@ -73,7 +76,10 @@ export class CharacterController {
       const includeDetails = req.query.includeDetails === 'true';
 
       // Get character
-      const character = await characterService.getCharacterById(id, includeDetails);
+      const character = await characterService.getCharacterById(
+        id,
+        includeDetails
+      );
 
       res.status(200).json(formatSuccess(mapToCharacterDto(character)));
     } catch (error) {
@@ -95,7 +101,7 @@ export class CharacterController {
       // Validate request body
       if (
         !characterData.name ||
-        !characterData.raceId ||
+        !characterData.ancestryId ||
         !characterData.userId ||
         !characterData.campaignId ||
         characterData.hitPoints === undefined ||
@@ -104,7 +110,8 @@ export class CharacterController {
         throw new ApiError(400, 'Missing required character data');
       }
 
-      const newCharacter = await characterService.createCharacter(characterData);
+      const newCharacter =
+        await characterService.createCharacter(characterData);
       res.status(201).json(formatSuccess(mapToCharacterDto(newCharacter)));
     } catch (error) {
       if (error instanceof ApiError) {
@@ -127,7 +134,10 @@ export class CharacterController {
         throw new ApiError(400, 'Invalid ID format');
       }
 
-      const updatedCharacter = await characterService.updateCharacter(id, characterData);
+      const updatedCharacter = await characterService.updateCharacter(
+        id,
+        characterData
+      );
       res.status(200).json(formatSuccess(mapToCharacterDto(updatedCharacter)));
     } catch (error) {
       if (error instanceof ApiError) {
@@ -172,16 +182,16 @@ export class CharacterController {
         throw new ApiError(400, 'Invalid ID format');
       }
 
-      const updatedAttributes = await characterService.updateCharacterAttributes(
-        id,
-        attributesData,
-      );
+      const updatedAttributes =
+        await characterService.updateCharacterAttributes(id, attributesData);
       res.status(200).json(formatSuccess(updatedAttributes));
     } catch (error) {
       if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
-        res.status(500).json(formatError('Failed to update character attributes'));
+        res
+          .status(500)
+          .json(formatError('Failed to update character attributes'));
       }
     }
   }
@@ -203,13 +213,19 @@ export class CharacterController {
         throw new ApiError(400, 'Attribute value must be a number');
       }
 
-      const updatedAttribute = await characterService.updateCharacterAttribute(id, attrType, value);
+      const updatedAttribute = await characterService.updateCharacterAttribute(
+        id,
+        attrType,
+        value
+      );
       res.status(200).json(formatSuccess(updatedAttribute));
     } catch (error) {
       if (error instanceof ApiError) {
         res.status(error.statusCode).json(formatError(error.message));
       } else {
-        res.status(500).json(formatError('Failed to update character attribute'));
+        res
+          .status(500)
+          .json(formatError('Failed to update character attribute'));
       }
     }
   }

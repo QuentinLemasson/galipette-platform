@@ -13,7 +13,7 @@ export interface CharacterAttribute extends PrismaCharacterAttribute {}
 // Character creation DTO
 export interface CreateCharacterDto {
   name: string;
-  raceId: number;
+  ancestryId: number;
   userId: number;
   campaignId: number;
   hitPoints: number;
@@ -24,7 +24,7 @@ export interface CreateCharacterDto {
 // Character update DTO
 export interface UpdateCharacterDto {
   name?: string;
-  raceId?: number;
+  ancestryId?: number;
   hitPoints?: number;
   maxHitPoints?: number;
   skillPoints?: number;
@@ -45,8 +45,8 @@ export interface UpdateCharacterAttributesDto {
 export interface CharacterResponseDto {
   id: number;
   name: string;
-  raceId: number;
-  raceName?: string;
+  ancestryId: number;
+  ancestryName?: string;
   userId: number;
   campaignId: number;
   hitPoints: number;
@@ -69,29 +69,31 @@ export interface CharacterAfflictionDto {
 // Function to map a Character entity to a CharacterResponseDto
 export function mapToCharacterDto(
   character: Character & {
-    race?: { name: string };
+    ancestry?: { name: string };
     attributes?: CharacterAttribute[];
     afflictions?: any[];
-  },
+  }
 ): CharacterResponseDto {
   return {
     id: character.id,
     name: character.name,
-    raceId: character.raceId,
-    ...(character.race?.name !== undefined && { raceName: character.race.name }),
+    ancestryId: character.ancestryId,
+    ...(character.ancestry?.name !== undefined && {
+      ancestryName: character.ancestry.name,
+    }),
     userId: character.userId,
     campaignId: character.campaignId,
     hitPoints: character.hitPoints,
     maxHitPoints: character.maxHitPoints,
     skillPoints: character.skillPoints,
     ...(character.attributes && {
-      attributes: character.attributes.map((attr) => ({
+      attributes: character.attributes.map(attr => ({
         type: attr.type,
         value: attr.value,
       })),
     }),
     ...(character.afflictions && {
-      afflictions: character.afflictions.map((aff) => ({
+      afflictions: character.afflictions.map(aff => ({
         id: aff.id,
         afflictionId: aff.afflictionId,
         afflictionName: aff.affliction.name,
