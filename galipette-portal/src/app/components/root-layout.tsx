@@ -5,7 +5,7 @@
  * Wraps route elements in Suspense to support lazy-loading.
  */
 import { Suspense } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { getPagesBySlot, PAGES } from '../routes/config/pages';
 import { RouteSlot } from '../types/routes.types';
 import { PreferencesDropdown, ThemeToggleButton } from '@/common/components';
@@ -17,6 +17,7 @@ import {
   NavigationMenuLink,
   navigationMenuTriggerStyle,
 } from '@/common/ui';
+import { cn } from '@/common/utils';
 
 /**
  * App shell providing header, navigation and content outlet.
@@ -24,6 +25,20 @@ import {
  * @returns Application layout with shared UI elements.
  */
 export function RootLayout() {
+  const location = useLocation();
+
+  /**
+   * Checks if a navigation link should be marked as active.
+   * A link is active if the current path starts with the link path.
+   *
+   * Examples:
+   * - /ancestries, /ancestries/new, /ancestries/2/details → ancestries is active
+   * - /campaigns, /campaigns/5/dashboard → campaigns is active
+   */
+  const isLinkActive = (linkPath: string): boolean => {
+    return location.pathname.startsWith(linkPath);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -38,17 +53,24 @@ export function RootLayout() {
             <Separator orientation="vertical" className="h-6" />
             <NavigationMenu>
               <NavigationMenuList>
-                {getPagesBySlot(RouteSlot.NAVBAR).map(page => (
-                  <NavigationMenuItem key={page.path}>
-                    <Link to={page.path}>
-                      <NavigationMenuLink
-                        className={navigationMenuTriggerStyle()}
-                      >
-                        {page.displayName}
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
+                {getPagesBySlot(RouteSlot.NAVBAR).map(page => {
+                  const isActive = isLinkActive(page.path);
+                  return (
+                    <NavigationMenuItem key={page.path}>
+                      <Link to={page.path}>
+                        <NavigationMenuLink
+                          className={cn(
+                            navigationMenuTriggerStyle(),
+                            isActive &&
+                              'bg-accent text-accent-foreground font-medium'
+                          )}
+                        >
+                          {page.displayName}
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  );
+                })}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
