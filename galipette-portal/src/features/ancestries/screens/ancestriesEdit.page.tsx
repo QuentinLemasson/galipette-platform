@@ -2,7 +2,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAncestry, useAncestryMutations } from '../hooks';
 import { AncestryForm } from '../components';
 import { Button } from '@/common/ui';
+import { ErrorBlock } from '@/common/components';
 import { PAGES } from '@/app/routes/config/pages';
+import { updateAncestrySchema } from '@galipette/shared';
 import type { UpdateAncestryDto } from '@galipette/shared';
 
 export default function AncestriesEditPage() {
@@ -49,11 +51,10 @@ export default function AncestriesEditPage() {
   if (error || !ancestry) {
     return (
       <div className="container mx-auto p-6 max-w-2xl">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600">
-            {error?.message || 'Ancestry not found'}
-          </p>
-        </div>
+        <ErrorBlock
+          message={error?.message || 'Ancestry not found'}
+          title="Error Loading Ancestry"
+        />
         <Link to={PAGES.ANCESTRIES.path} className="mt-4 inline-block">
           <Button>← Back to Ancestries</Button>
         </Link>
@@ -87,15 +88,11 @@ export default function AncestriesEditPage() {
           initialData={ancestry}
           onSubmit={handleSubmit}
           isLoading={updateAncestry.isPending}
+          error={updateAncestry.error?.message}
+          schema={updateAncestrySchema}
+          submitLabel="Save Changes"
+          loadingLabel="Saving..."
         />
-
-        {updateAncestry.isError && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-600">
-              {updateAncestry.error?.message || 'Failed to update ancestry'}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Cancel Button */}

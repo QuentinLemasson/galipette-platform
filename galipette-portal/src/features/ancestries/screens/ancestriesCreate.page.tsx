@@ -3,6 +3,7 @@ import { useAncestryMutations } from '../hooks';
 import { AncestryForm } from '../components';
 import { Button } from '@/common/ui';
 import { PAGES } from '@/app/routes/config/pages';
+import { createAncestrySchema } from '@galipette/shared';
 import type { CreateAncestryDto } from '@galipette/shared';
 
 export default function AncestriesCreatePage() {
@@ -41,15 +42,11 @@ export default function AncestriesCreatePage() {
         <AncestryForm
           onSubmit={handleSubmit}
           isLoading={createAncestry.isPending}
+          error={createAncestry.error?.message}
+          schema={createAncestrySchema}
+          submitLabel="Create Ancestry"
+          loadingLabel="Creating..."
         />
-
-        {createAncestry.isError && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-600">
-              {createAncestry.error?.message || 'Failed to create ancestry'}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Cancel Button */}

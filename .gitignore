@@ -9,3 +9,5 @@ dist
 .env.test
 .env.production
 *.code-workspace
+
+/specs/*

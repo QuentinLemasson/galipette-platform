@@ -1,0 +1,88 @@
+---
+alwaysApply: true
+---
+
+# Project's Coding Guidelines
+
+## 🧭 General Coding Principles
+
+- Follow **SOLID** principles and modern **TypeScript/React** best practices.
+- Always use **strict typing** — avoid `any`, prefer explicit types or generics.
+- Code should be **self-documenting**, consistent, and readable.
+- Keep functions and components **focused and composable**.
+- Respect **DRY** (Don’t Repeat Yourself) and **KISS** (Keep It Simple, Stupid).
+- Use **meaningful, explicit names** for variables, functions, and files.
+- Keep each file under **~300 lines** (split logic when needed).
+
+---
+
+## ⚛️ React & Component Rules
+
+- Use **functional components only**.
+  - ✅ Exception: `class` components for **error boundaries** only.
+
+**Component guidelines:**
+
+- Each component has a **single responsibility**.
+- Max **150 lines per component**.
+- All props and returns are **explicitly typed**.
+- Avoid deep nesting — use **composition** instead of prop drilling.
+- Prefer **declarative logic** (describe _what_ to render, not _how_).
+
+**Avoid `useEffect`:**
+
+- Prefer **event-based logic** and **React 19’s `use()` hook** for non-mutable data.
+- If `useEffect` is unavoidable → wrap it inside a **custom hook**.
+
+---
+
+## 🧩 Hooks & State Management
+
+- Use **custom hooks** for shared logic.
+- Never duplicate side effects or async logic inside components.
+- Keep state **minimal and localized** to the smallest scope possible.
+- Avoid unnecessary re-renders — use `memo`, `useCallback`, and `useMemo` wisely.
+- Favor **immutable updates** (`map`, `filter`, spread syntax, etc.).
+
+---
+
+## 📚 Documentation & Readability
+
+- Use **JSDoc** for:
+  - Components
+  - Custom hooks
+  - Utility functions
+  - File overview (`@fileOverview`)
+
+**Example:**
+
+```ts
+/**
+ * @fileOverview Manages player list and selection logic.
+ */
+
+/**
+ * Displays the player table.
+ * @param {PlayerTableProps} props - Table data and filters.
+ */
+```
+
+- Keep comments concise, relevant, and up to date.
+- Document intent, not implementation details.
+- Maintain a consistent import order:
+  - External dependencies
+  - Internal modules
+  - Styles
+
+## 🧱 Maintainability & Project Hygiene
+
+- Use barrel files (index.ts) for shared modules to simplify imports.
+- Prefer pure functions and declarative logic over imperative flows.
+- Ensure unit tests cover business logic and component tests cover UI.
+- Follow conventional commits (feat:, fix:, refactor:...).
+- Use ESLint + Prettier for consistent formatting and code quality.
+- Avoid “magic numbers” — extract constants for clarity.
+
+## ✅ Goal:
+
+Ensure maintainable, scalable, and readable code that aligns with modern React + TypeScript standards.
