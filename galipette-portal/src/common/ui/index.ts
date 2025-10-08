@@ -42,3 +42,21 @@ export {
 } from './dropdown-menu';
 export { Separator } from './separator';
 export { Switch } from './switch';
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from './card';
+export { Badge, badgeVariants } from './badge';
+export { Avatar, AvatarImage, AvatarFallback } from './avatar';
+export {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select';
+export { Item } from './item';

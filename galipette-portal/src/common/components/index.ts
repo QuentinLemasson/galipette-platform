@@ -1,6 +1,12 @@
 // Generic components (non-shadcn)
 // Add your custom generic components here
 
+// Common UI wrappers
+export * from './StatusBadge';
+export * from './UserAvatar';
+export * from './UserItem';
+export * from './Typography';
+
 // Form field components
 export * from './FormFields';
 

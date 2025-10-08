@@ -6,13 +6,24 @@ import {
   CampaignStatus,
 } from '@galipette/shared';
 import type { UpdateCampaignDto } from '@galipette/shared';
-import { Button } from '@/common/ui';
+import { Button, Form } from '@/common/ui';
+import {
+  FormFieldInput,
+  FormFieldTextarea,
+  FormFieldSelect,
+} from '@/common/components';
 
 interface CampaignFormProps {
   initialData?: Partial<UpdateCampaignDto>;
   onSubmit: (data: any) => void;
   isLoading?: boolean;
 }
+
+const statusOptions = [
+  { value: CampaignStatus.ACTIVE, label: 'Active' },
+  { value: CampaignStatus.PAUSED, label: 'Paused' },
+  { value: CampaignStatus.ENDED, label: 'Ended' },
+];
 
 export const CampaignForm = ({
   initialData,
@@ -25,11 +36,7 @@ export const CampaignForm = ({
     ? updateCampaignSchema
     : createCampaignSchema.omit({ ownerId: true });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: initialData || {
       name: '',
@@ -39,64 +46,39 @@ export const CampaignForm = ({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Campaign Name *
-        </label>
-        <input
-          {...register('name')}
-          type="text"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormFieldInput
+          name="name"
+          label="Campaign Name"
           placeholder="Enter campaign name"
+          required
         />
-        {errors.name && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.name.message as string}
-          </p>
-        )}
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <textarea
-          {...register('description')}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <FormFieldTextarea
+          name="description"
+          label="Description"
           placeholder="Describe your campaign..."
+          rows={3}
         />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.description.message as string}
-          </p>
+
+        {isEditMode && (
+          <FormFieldSelect
+            name="status"
+            label="Status"
+            options={statusOptions}
+            placeholder="Select status"
+          />
         )}
-      </div>
 
-      {isEditMode && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
-          <select
-            {...register('status')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value={CampaignStatus.ACTIVE}>Active</option>
-            <option value={CampaignStatus.PAUSED}>Paused</option>
-            <option value={CampaignStatus.ENDED}>Ended</option>
-          </select>
-        </div>
-      )}
-
-      <Button type="submit" disabled={isLoading}>
-        {isLoading
-          ? 'Saving...'
-          : isEditMode
-            ? 'Save Changes'
-            : 'Create Campaign'}
-      </Button>
-    </form>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading
+            ? 'Saving...'
+            : isEditMode
+              ? 'Save Changes'
+              : 'Create Campaign'}
+        </Button>
+      </form>
+    </Form>
   );
 };

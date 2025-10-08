@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCampaigns } from '../hooks';
 import { CampaignCard } from '../components';
-import { Button } from '@/common/ui';
+import { Typography } from '@/common/components';
+import { Button, Card, Alert, AlertDescription } from '@/common/ui';
 import { PAGES } from '@/app/routes/config/pages';
 
 export default function CampaignListPage() {
@@ -19,7 +20,7 @@ export default function CampaignListPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-gray-600">Loading campaigns...</p>
+          <Typography variant="muted">Loading campaigns...</Typography>
         </div>
       </div>
     );
@@ -28,11 +29,11 @@ export default function CampaignListPage() {
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600">
+        <Alert variant="destructive">
+          <AlertDescription>
             Error loading campaigns: {error.message}
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -41,10 +42,12 @@ export default function CampaignListPage() {
     <section className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Campaigns</h1>
-          <p className="text-sm mt-1 text-gray-600">
+          <Typography variant="h1" className="text-2xl font-bold">
+            My Campaigns
+          </Typography>
+          <Typography variant="muted" className="mt-1">
             Manage and view all your campaigns
-          </p>
+          </Typography>
         </div>
         <Link to={PAGES.CAMPAIGN_CREATE.path}>
           <Button>+ Create Campaign</Button>
@@ -52,14 +55,14 @@ export default function CampaignListPage() {
       </div>
 
       {!campaigns || campaigns.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-600 mb-4">
+        <Card className="text-center py-12">
+          <Typography variant="body" className="mb-4">
             You don't have any campaigns yet. Why not create one?
-          </p>
+          </Typography>
           <Link to={PAGES.CAMPAIGN_CREATE.path}>
             <Button>Create Your First Campaign</Button>
           </Link>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {campaigns.map(campaign => (

@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { useCampaign, useCampaignPlayers } from '../hooks';
 import { CampaignStatusBadge, PlayerList } from '../components';
-import { Button } from '@/common/ui';
+import { Typography } from '@/common/components';
+import { Button, Card, Alert, AlertDescription } from '@/common/ui';
 
 export default function CampaignDashboardPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
@@ -14,7 +15,7 @@ export default function CampaignDashboardPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-gray-600">Loading campaign...</p>
+          <Typography variant="muted">Loading campaign...</Typography>
         </div>
       </div>
     );
@@ -23,15 +24,17 @@ export default function CampaignDashboardPage() {
   if (error || !campaign) {
     return (
       <div className="container mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600">Campaign not found</p>
-          <Link
-            to="/campaigns"
-            className="text-blue-600 hover:underline mt-2 inline-block"
-          >
-            ← Back to campaigns
-          </Link>
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>
+            Campaign not found
+            <Link
+              to="/campaigns"
+              className="text-primary hover:text-primary/80 underline mt-2 inline-block ml-2"
+            >
+              ← Back to campaigns
+            </Link>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -45,7 +48,7 @@ export default function CampaignDashboardPage() {
       <div className="mb-4">
         <Link
           to="/campaigns"
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="text-primary hover:text-primary/80 text-sm"
         >
           ← Back to campaigns
         </Link>
@@ -54,15 +57,19 @@ export default function CampaignDashboardPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">{campaign.name}</h1>
+          <Typography variant="h1" className="text-2xl font-bold">
+            {campaign.name}
+          </Typography>
           <CampaignStatusBadge status={campaign.status} />
         </div>
         {campaign.description && (
-          <p className="text-gray-600">{campaign.description}</p>
+          <Typography variant="body" className="mt-1">
+            {campaign.description}
+          </Typography>
         )}
-        <p className="text-sm text-gray-500 mt-1">
+        <Typography variant="muted" className="mt-1">
           Game Master: {campaign.gameMaster?.username || 'Unknown'}
-        </p>
+        </Typography>
       </div>
 
       {/* Actions */}
@@ -77,23 +84,25 @@ export default function CampaignDashboardPage() {
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Players Section */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Players</h2>
+        <Card className="p-6 bg-transparent">
+          <Typography variant="h3" className="mb-4">
+            Players
+          </Typography>
           {players && players.length > 0 ? (
             <PlayerList players={players} />
           ) : (
-            <p className="text-gray-500">No players yet</p>
+            <Typography variant="muted">No players yet</Typography>
           )}
-        </div>
+        </Card>
 
         {/* Characters Section */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+        <Card className="p-6 bg-transparent">
+          <Typography variant="h3" className="mb-4">
             Characters
-          </h2>
-          <p className="text-gray-500">Character list coming soon...</p>
+          </Typography>
+          <Typography variant="muted">Character list coming soon...</Typography>
           {/* TODO: Add character list when available */}
-        </div>
+        </Card>
       </div>
     </section>
   );

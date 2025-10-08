@@ -1,41 +1,49 @@
 import { CampaignStatus } from '@galipette/shared';
-import { cn } from '@/common/utils';
+import { StatusBadge } from '@/common/components';
+
+// TODO : generalize this in a configurable shared behaviour
 
 interface CampaignStatusBadgeProps {
   status: CampaignStatus;
   className?: string;
 }
 
-const statusConfig = {
-  [CampaignStatus.ACTIVE]: {
-    label: 'Active',
-    className: 'bg-green-100 text-green-800 border-green-200',
-  },
-  [CampaignStatus.PAUSED]: {
-    label: 'Paused',
-    className: 'bg-gray-100 text-gray-800 border-gray-200',
-  },
-  [CampaignStatus.ENDED]: {
-    label: 'Ended',
-    className: 'bg-red-100 text-red-800 border-red-200',
-  },
+const getStatusVariant = (status: CampaignStatus) => {
+  switch (status) {
+    case CampaignStatus.ACTIVE:
+      return 'success' as const;
+    case CampaignStatus.PAUSED:
+      return 'warning' as const;
+    case CampaignStatus.ENDED:
+      return 'error' as const;
+    default:
+      return 'neutral' as const;
+  }
+};
+
+const getStatusLabel = (status: CampaignStatus) => {
+  switch (status) {
+    case CampaignStatus.ACTIVE:
+      return 'Active';
+    case CampaignStatus.PAUSED:
+      return 'Paused';
+    case CampaignStatus.ENDED:
+      return 'Ended';
+    default:
+      return status;
+  }
 };
 
 export const CampaignStatusBadge = ({
   status,
   className,
 }: CampaignStatusBadgeProps) => {
-  const config = statusConfig[status];
+  const variant = getStatusVariant(status);
+  const label = getStatusLabel(status);
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
-        config.className,
-        className
-      )}
-    >
-      {config.label}
-    </span>
+    <StatusBadge variant={variant} className={className}>
+      {label}
+    </StatusBadge>
   );
 };

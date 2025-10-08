@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCampaignMutations } from '../hooks';
 import { CampaignForm } from '../components';
+import { Typography } from '@/common/components';
+import { Card, Alert, AlertDescription } from '@/common/ui';
 import type { CreateCampaignDto } from '@galipette/shared';
 
 export default function CampaignCreatePage() {
@@ -41,7 +43,7 @@ export default function CampaignCreatePage() {
       <div className="mb-4">
         <Link
           to="/campaigns"
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="text-primary hover:text-primary/80 text-sm"
         >
           ← Back to campaigns
         </Link>
@@ -49,28 +51,30 @@ export default function CampaignCreatePage() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <Typography variant="h1" className="mb-2">
           Create New Campaign
-        </h1>
-        <p className="text-gray-600 mt-1">
+        </Typography>
+        <Typography variant="muted">
           Start a new adventure by creating your campaign
-        </p>
+        </Typography>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600">Failed to create campaign: {error}</p>
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>
+            Failed to create campaign: {error}
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Form */}
-      <div className="bg-white p-6 rounded-lg border border-gray-200">
+      <Card className="p-4">
         <CampaignForm
           onSubmit={handleCreateCampaign}
           isLoading={createCampaign.isPending}
         />
-      </div>
+      </Card>
     </section>
   );
 }

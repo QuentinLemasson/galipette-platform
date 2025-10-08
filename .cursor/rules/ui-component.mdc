@@ -1,17 +1,19 @@
 ---
-description: Usage of UI components
-alwaysApply: false
+alwaysApply: true
 ---
 
 When using, updating ui components, or building interfaces using ui components, follow the following rules:
 
 - always use the shadcn mcp tools
-- prefer using existing components if they already exists
+- prefer using existing components in galipette-portal/common/components or galipette-portal/common/ui if they already exists
 - you may create variant of component for specific needs
 - when searching for component using the mcp tools, start by checking the registeries, then the demo of these components
 - if ts errors arise, fix them
+- ensure the color used derives from user theme
 
 When building complex interface, check if a block is available.
 You may create/add features to existing block => ensure it follow SOLID principles and doesn't brek current implementation
 
 You should prefer the composition of existing UI component / blocks, instead of defining custom DOM elements or CSS
+
+The goal is to factorize as much code aspossible

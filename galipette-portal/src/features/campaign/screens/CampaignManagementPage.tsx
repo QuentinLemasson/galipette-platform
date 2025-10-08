@@ -5,6 +5,8 @@ import {
   useCampaignMutations,
 } from '../hooks';
 import { CampaignForm, PlayerList } from '../components';
+import { Typography } from '@/common/components';
+import { Card } from '@/common/ui';
 import type { UpdateCampaignDto } from '@galipette/shared';
 
 export default function CampaignManagementPage() {
@@ -39,7 +41,7 @@ export default function CampaignManagementPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-gray-600">Loading...</p>
+          <Typography variant="muted">Loading...</Typography>
         </div>
       </div>
     );
@@ -51,20 +53,22 @@ export default function CampaignManagementPage() {
       <div className="mb-4">
         <Link
           to={`/campaigns/${campaignId}/dashboard`}
-          className="text-blue-600 hover:text-blue-800 text-sm"
+          className="text-primary hover:text-primary/80 text-sm"
         >
           ← Back to dashboard
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">Manage Campaign</h1>
+      <Typography variant="h1" className="text-2xl font-bold mb-6">
+        Manage Campaign
+      </Typography>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Campaign Info */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+        <Card className="p-6">
+          <Typography variant="h3" className="mb-4">
             Campaign Information
-          </h2>
+          </Typography>
           <CampaignForm
             initialData={{
               name: campaign.name,
@@ -74,13 +78,13 @@ export default function CampaignManagementPage() {
             onSubmit={handleUpdateCampaign}
             isLoading={updateCampaign.isPending}
           />
-        </div>
+        </Card>
 
         {/* Player Management */}
-        <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+        <Card className="p-6">
+          <Typography variant="h3" className="mb-4">
             Player Management
-          </h2>
+          </Typography>
           {players && players.length > 0 ? (
             <PlayerList
               players={players}
@@ -88,15 +92,15 @@ export default function CampaignManagementPage() {
               isGM={true}
             />
           ) : (
-            <p className="text-gray-500">No players yet</p>
+            <Typography variant="muted">No players yet</Typography>
           )}
           <div className="mt-4">
-            <p className="text-sm text-gray-500">
+            <Typography variant="muted">
               Add player functionality coming soon...
-            </p>
+            </Typography>
             {/* TODO: Add "Add Player" functionality */}
           </div>
-        </div>
+        </Card>
       </div>
     </section>
   );
