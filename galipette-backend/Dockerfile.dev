@@ -3,10 +3,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies for native modules and health checks
-RUN apk add --no-cache python3 make g++ curl
+# Install dependencies for native modules, health checks, and database tools
+RUN apk add --no-cache python3 make g++ curl postgresql-client
 
-# Copy package files for workspace
+# Copy package files for workspace (better layer caching)
 COPY package*.json ./
 COPY galipette-backend/package*.json ./galipette-backend/
 COPY galipette-shared-lib/package*.json ./galipette-shared-lib/

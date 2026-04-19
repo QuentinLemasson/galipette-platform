@@ -19,56 +19,56 @@ function Show-Help {
 # Function to start services
 function Start-Services {
     Write-Host "Starting Galipette development environment..." -ForegroundColor Yellow
-    docker-compose up -d
+    docker-compose -f ../docker-compose.dev.yml up -d
     Write-Host "Services started! Backend available at http://localhost:3000" -ForegroundColor Green
 }
 
 # Function to stop services
 function Stop-Services {
     Write-Host "Stopping Galipette development environment..." -ForegroundColor Yellow
-    docker-compose down
+    docker-compose -f ../docker-compose.dev.yml down
     Write-Host "Services stopped!" -ForegroundColor Green
 }
 
 # Function to restart services
 function Restart-Services {
     Write-Host "Restarting Galipette development environment..." -ForegroundColor Yellow
-    docker-compose down
-    docker-compose up -d
+    docker-compose -f ../docker-compose.dev.yml down
+    docker-compose -f ../docker-compose.dev.yml up -d
     Write-Host "Services restarted!" -ForegroundColor Green
 }
 
 # Function to show logs
 function Show-Logs {
-    docker-compose logs -f
+    docker-compose -f ../docker-compose.dev.yml logs -f
 }
 
 # Function to connect to database
 function Connect-Database {
     Write-Host "Connecting to PostgreSQL database..." -ForegroundColor Yellow
-    docker-compose exec postgres psql -U postgres -d galipette_db
+    docker-compose -f ../docker-compose.dev.yml exec postgres psql -U postgres -d galipette_db
 }
 
 # Function to run migrations
 function Run-Migrations {
     Write-Host "Running database migrations..." -ForegroundColor Yellow
-    docker-compose exec backend npm exec --workspace=galipette-backend -- prisma migrate dev
+    docker-compose -f ../docker-compose.dev.yml exec backend npm exec --workspace=galipette-backend -- prisma migrate dev
 }
 
 # Function to reset database
 function Reset-Database {
     Write-Host "Resetting database..." -ForegroundColor Yellow
-    docker-compose down -v
-    docker-compose up -d postgres
+    docker-compose -f ../docker-compose.dev.yml down -v
+    docker-compose -f ../docker-compose.dev.yml up -d postgres
     Start-Sleep -Seconds 5
-    docker-compose up -d backend
+    docker-compose -f ../docker-compose.dev.yml up -d backend
     Write-Host "Database reset complete!" -ForegroundColor Green
 }
 
 # Function to clean up
 function Clean-Up {
     Write-Host "Cleaning up Docker containers and volumes..." -ForegroundColor Yellow
-    docker-compose down -v --remove-orphans
+    docker-compose -f ../docker-compose.dev.yml down -v --remove-orphans
     docker system prune -f
     Write-Host "Cleanup complete!" -ForegroundColor Green
 }
