@@ -1,14 +1,24 @@
 /**
- * @fileOverview Affliction export: HTML layout + classic CSS, canvas capture, landscape PDF.
+ * @fileOverview Affliction export: draws landscape A4 canvases directly (no HTML/CSS),
+ * then embeds them in jsPDF (one page per 8 cards; extra cards continue on following pages).
+ *
+ * Print-friendly: no ink-heavy fills — transparent page, cards and panels drawn with borders only.
+ *
+ * Card layout:
+ * - Card outline (rounded rect stroke).
+ * - Title bar at top: border only, dark text.
+ * - Centered "image a venir" placeholder text.
+ * - Description panel at bottom: border only, auto height from line count.
  */
-import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 import type { DamageTypeBySlug } from '../data/damage-types';
-import afflictionsPdfStyles from './afflictions-pdf.css?raw';
+
+/* ------------------------------------------------------------------------------------------------
+ * Types & damage-token parser (shared with the on-page renderer)
+ * ------------------------------------------------------------------------------------------------ */
 
 const DAMAGE_VALUE_TOKEN_REGEX = /damage:([a-z0-9-]+):(X|\d+)/gi;
-const DAMAGE_TAG_PREFIX = 'damage:';
 
 export type AfflictionPdfSource = {
   id: number;
@@ -62,290 +72,469 @@ export const parseDamageDescription = (
   return segments.length > 0 ? segments : [{ text: description }];
 };
 
-const escapeHtml = (value: string): string =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+/* ------------------------------------------------------------------------------------------------
+ * Page / grid / card layout constants (in PDF points)
+ * ------------------------------------------------------------------------------------------------ */
 
-const segmentsToHtml = (segments: DescriptionSegment[]): string =>
-  segments
-    .map(segment =>
-      segment.color
-        ? `<span class="apdf-damage" style="color:${escapeHtml(segment.color)}">${escapeHtml(segment.text)}</span>`
-        : escapeHtml(segment.text)
-    )
-    .join('');
+const PAGE_WIDTH_PT = 842;
+const PAGE_HEIGHT_PT = 595;
+const CAPTURE_SCALE = 2;
 
-const getTagColor = (tag: string, damageTypeBySlug: DamageTypeBySlug): string => {
-  if (!tag.startsWith(DAMAGE_TAG_PREFIX)) {
-    return '#64748b';
+const GRID_COLS = 4;
+const GRID_ROWS = 2;
+const GRID_OUTER_PAD = 12;
+const GRID_GAP = 8;
+
+/** Cards per landscape A4 page (4 columns × 2 rows). */
+export const CARDS_PER_PAGE = GRID_COLS * GRID_ROWS;
+
+const CARD_RADIUS = 10;
+const FLOATING_INSET = 10;
+
+/** Stroke-only styling for print (minimal ink). */
+const STROKE_CARD = '#64748b';
+const STROKE_INNER = '#94a3b8';
+const STROKE_WIDTH = 1;
+
+const TITLE_HEIGHT = 32;
+const TITLE_RADIUS = 8;
+const TITLE_COLOR = '#0f172a';
+const TITLE_FONT = "700 13px 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+
+const DESC_RADIUS = 8;
+const DESC_EFFECT_COLOR = '#1e293b';
+const DESC_HEALING_COLOR = '#64748b';
+const DESC_FONT = "500 9px 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+const DESC_PADDING_X = 10;
+const DESC_PADDING_Y = 7;
+const DESC_LINE_HEIGHT = 11.5;
+const DESC_SECTION_GAP = 4;
+
+const PLACEHOLDER_FONT =
+  "600 10px 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+const PLACEHOLDER_COLOR = '#64748b';
+
+/* ------------------------------------------------------------------------------------------------
+ * Canvas helpers
+ * ------------------------------------------------------------------------------------------------ */
+
+type CardBox = { x: number; y: number; w: number; h: number };
+
+type Word = { text: string; color?: string; isSpace: boolean };
+
+const drawRoundedRect = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+): void => {
+  const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, radius);
+  } else {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+    ctx.lineTo(x + radius, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
   }
-  const damageSlug = tag.slice(DAMAGE_TAG_PREFIX.length);
-  return damageTypeBySlug[damageSlug]?.color ?? '#64748b';
 };
 
-const getTagLabel = (tag: string, damageTypeBySlug: DamageTypeBySlug): string =>
-  tag.startsWith(DAMAGE_TAG_PREFIX)
-    ? `degats:${(
-        damageTypeBySlug[tag.slice(DAMAGE_TAG_PREFIX.length)]?.name ?? tag
-      ).toLowerCase()}`
-    : tag;
-
-type PdfImageFormat = 'PNG' | 'JPEG' | 'WEBP';
-
-type PdfImage = {
-  dataUrl: string;
-  format: PdfImageFormat;
+const segmentsToWords = (segments: DescriptionSegment[]): Word[] => {
+  const words: Word[] = [];
+  for (const segment of segments) {
+    const parts = segment.text.split(/(\s+)/);
+    for (const part of parts) {
+      if (!part) continue;
+      words.push({
+        text: part,
+        color: segment.color,
+        isSpace: /^\s+$/.test(part),
+      });
+    }
+  }
+  return words;
 };
 
-const MIME_TO_PDF_FORMAT: Partial<Record<string, PdfImageFormat>> = {
-  'image/png': 'PNG',
-  'image/jpeg': 'JPEG',
-  'image/jpg': 'JPEG',
-  'image/pjpeg': 'JPEG',
-  'image/webp': 'WEBP',
-};
+const wrapWords = (
+  ctx: CanvasRenderingContext2D,
+  words: Word[],
+  maxWidth: number,
+  maxLines?: number
+): Word[][] => {
+  const lines: Word[][] = [];
+  let current: Word[] = [];
+  let currentWidth = 0;
+  let truncated = false;
 
-const resolveImageUrl = (imagePath: string): string =>
-  imagePath.startsWith('http')
-    ? imagePath
-    : `${window.location.origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  const finishLine = (): void => {
+    while (current.length > 0 && current[current.length - 1].isSpace) {
+      current.pop();
+    }
+    if (current.length > 0) {
+      lines.push(current);
+    }
+    current = [];
+    currentWidth = 0;
+  };
 
-const blobToDataUrl = (blob: Blob): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Invalid FileReader result'));
+  for (const word of words) {
+    if (maxLines !== undefined && lines.length >= maxLines) {
+      truncated = true;
+      break;
+    }
+
+    if (word.isSpace && current.length === 0) {
+      continue;
+    }
+
+    const wordWidth = ctx.measureText(word.text).width;
+
+    if (currentWidth + wordWidth > maxWidth && current.length > 0) {
+      finishLine();
+      if (maxLines !== undefined && lines.length >= maxLines) {
+        truncated = true;
+        break;
       }
-    };
-    reader.onerror = () => reject(reader.error ?? new Error('FileReader failed'));
-    reader.readAsDataURL(blob);
-  });
-
-const sniffPdfImageFormat = async (blob: Blob): Promise<PdfImageFormat | null> => {
-  const head = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
-  if (head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47) {
-    return 'PNG';
-  }
-  if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) {
-    return 'JPEG';
-  }
-  if (
-    head[0] === 0x52 &&
-    head[1] === 0x49 &&
-    head[2] === 0x46 &&
-    head[3] === 0x46 &&
-    head[8] === 0x57 &&
-    head[9] === 0x45 &&
-    head[10] === 0x42 &&
-    head[11] === 0x50
-  ) {
-    return 'WEBP';
-  }
-  return null;
-};
-
-const rasterizeImageDataUrlToPng = (dataUrl: string): Promise<string | null> =>
-  new Promise(resolve => {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = image.naturalWidth;
-        canvas.height = image.naturalHeight;
-        const context = canvas.getContext('2d');
-        if (!context) {
-          resolve(null);
-          return;
-        }
-        context.drawImage(image, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      } catch {
-        resolve(null);
+      if (word.isSpace) {
+        continue;
       }
-    };
-    image.onerror = () => resolve(null);
-    image.src = dataUrl;
-  });
-
-const loadImageForPdf = async (imagePath: string): Promise<PdfImage | null> => {
-  try {
-    const response = await fetch(resolveImageUrl(imagePath));
-    if (!response.ok) {
-      return null;
     }
 
-    const blob = await response.blob();
-    const mime = blob.type.split(';')[0].trim().toLowerCase();
-
-    if (
-      mime === 'text/html' ||
-      mime === 'application/json' ||
-      mime === 'text/plain'
-    ) {
-      return null;
-    }
-
-    let format: PdfImageFormat | null = MIME_TO_PDF_FORMAT[mime] ?? null;
-    if (!format) {
-      format = await sniffPdfImageFormat(blob);
-    }
-
-    let dataUrl = await blobToDataUrl(blob);
-
-    if (!format && mime.startsWith('image/')) {
-      const pngDataUrl = await rasterizeImageDataUrlToPng(dataUrl);
-      if (!pngDataUrl) {
-        return null;
-      }
-      dataUrl = pngDataUrl;
-      format = 'PNG';
-    }
-
-    if (!format) {
-      return null;
-    }
-
-    return { dataUrl, format };
-  } catch {
-    return null;
+    current.push(word);
+    currentWidth += wordWidth;
   }
-};
 
-const normalizePdfImage = async (loaded: PdfImage): Promise<PdfImage> => {
-  try {
-    const probe = new jsPDF({ unit: 'pt', format: [24, 24] });
-    probe.addImage(loaded.dataUrl, loaded.format, 0, 0, 12, 12, undefined, 'FAST');
-    return loaded;
-  } catch {
-    const pngDataUrl = await rasterizeImageDataUrlToPng(loaded.dataUrl);
-    return pngDataUrl ? { dataUrl: pngDataUrl, format: 'PNG' } : loaded;
-  }
-};
-
-const preloadAfflictionImages = async (
-  afflictions: readonly AfflictionPdfSource[]
-): Promise<Map<string, string | null>> => {
-  const map = new Map<string, string | null>();
-  const paths = [...new Set(afflictions.map(a => a.image))];
-
-  for (const path of paths) {
-    const loaded = await loadImageForPdf(path);
-    if (!loaded) {
-      map.set(path, null);
+  if (current.length > 0) {
+    if (maxLines === undefined || lines.length < maxLines) {
+      finishLine();
     } else {
-      const normalized = await normalizePdfImage(loaded);
-      map.set(path, normalized.dataUrl);
+      truncated = true;
     }
   }
 
-  return map;
+  if (truncated && lines.length > 0) {
+    const ellipsis: Word = { text: '…', isSpace: false };
+    const lastLine = lines[lines.length - 1];
+    const ellipsisWidth = ctx.measureText(ellipsis.text).width;
+    let lineWidth = lastLine.reduce(
+      (sum, word) => sum + ctx.measureText(word.text).width,
+      0
+    );
+    while (lastLine.length > 0 && lineWidth + ellipsisWidth > maxWidth) {
+      const popped = lastLine.pop();
+      if (!popped) break;
+      lineWidth -= ctx.measureText(popped.text).width;
+    }
+    while (lastLine.length > 0 && lastLine[lastLine.length - 1].isSpace) {
+      lastLine.pop();
+    }
+    lastLine.push(ellipsis);
+  }
+
+  return lines;
 };
 
-const buildAfflictionCardHtml = (
+const drawWrappedLines = (
+  ctx: CanvasRenderingContext2D,
+  lines: Word[][],
+  x: number,
+  baselineY: number,
+  lineHeight: number,
+  defaultColor: string
+): void => {
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    let cursorX = x;
+    for (const word of line) {
+      ctx.fillStyle = word.color ?? defaultColor;
+      ctx.fillText(word.text, cursorX, baselineY + i * lineHeight);
+      cursorX += ctx.measureText(word.text).width;
+    }
+  }
+};
+
+const fitTextWithEllipsis = (
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string => {
+  if (ctx.measureText(text).width <= maxWidth) {
+    return text;
+  }
+  let truncated = text;
+  while (
+    truncated.length > 1 &&
+    ctx.measureText(`${truncated}…`).width > maxWidth
+  ) {
+    truncated = truncated.slice(0, -1);
+  }
+  return `${truncated.trimEnd()}…`;
+};
+
+const computeCardBoxes = (): CardBox[] => {
+  const cardWidth =
+    (PAGE_WIDTH_PT - 2 * GRID_OUTER_PAD - (GRID_COLS - 1) * GRID_GAP) / GRID_COLS;
+  const cardHeight =
+    (PAGE_HEIGHT_PT - 2 * GRID_OUTER_PAD - (GRID_ROWS - 1) * GRID_GAP) / GRID_ROWS;
+
+  const boxes: CardBox[] = [];
+  for (let row = 0; row < GRID_ROWS; row += 1) {
+    for (let col = 0; col < GRID_COLS; col += 1) {
+      boxes.push({
+        x: GRID_OUTER_PAD + col * (cardWidth + GRID_GAP),
+        y: GRID_OUTER_PAD + row * (cardHeight + GRID_GAP),
+        w: cardWidth,
+        h: cardHeight,
+      });
+    }
+  }
+  return boxes;
+};
+
+/* ------------------------------------------------------------------------------------------------
+ * Card drawing
+ * ------------------------------------------------------------------------------------------------ */
+
+const drawCardOutline = (
+  ctx: CanvasRenderingContext2D,
+  box: CardBox
+): void => {
+  const { x, y, w, h } = box;
+
+  ctx.save();
+  ctx.strokeStyle = STROKE_CARD;
+  ctx.lineWidth = STROKE_WIDTH;
+  drawRoundedRect(ctx, x + STROKE_WIDTH / 2, y + STROKE_WIDTH / 2, w - STROKE_WIDTH, h - STROKE_WIDTH, CARD_RADIUS);
+  ctx.stroke();
+  ctx.restore();
+};
+
+const drawCardImagePlaceholder = (
+  ctx: CanvasRenderingContext2D,
+  box: CardBox
+): void => {
+  const { x, y, w, h } = box;
+
+  ctx.save();
+  const inset = 12;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = STROKE_INNER;
+  ctx.lineWidth = STROKE_WIDTH;
+  drawRoundedRect(
+    ctx,
+    x + inset + STROKE_WIDTH / 2,
+    y + inset + STROKE_WIDTH / 2,
+    w - 2 * inset - STROKE_WIDTH,
+    h - 2 * inset - STROKE_WIDTH,
+    6
+  );
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = PLACEHOLDER_COLOR;
+  ctx.font = PLACEHOLDER_FONT;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('image a venir', x + w / 2, y + h / 2);
+  ctx.textAlign = 'start';
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+};
+
+const drawFloatingTitle = (
+  ctx: CanvasRenderingContext2D,
+  box: CardBox,
+  name: string
+): void => {
+  const titleX = box.x + FLOATING_INSET;
+  const titleY = box.y + FLOATING_INSET;
+  const titleW = box.w - 2 * FLOATING_INSET;
+
+  ctx.save();
+  ctx.strokeStyle = STROKE_CARD;
+  ctx.lineWidth = STROKE_WIDTH;
+  drawRoundedRect(
+    ctx,
+    titleX + STROKE_WIDTH / 2,
+    titleY + STROKE_WIDTH / 2,
+    titleW - STROKE_WIDTH,
+    TITLE_HEIGHT - STROKE_WIDTH,
+    TITLE_RADIUS
+  );
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = TITLE_COLOR;
+  ctx.font = TITLE_FONT;
+  ctx.textBaseline = 'middle';
+  const paddingX = 9;
+  const text = fitTextWithEllipsis(ctx, name, titleW - 2 * paddingX);
+  ctx.fillText(text, titleX + paddingX, titleY + TITLE_HEIGHT / 2 + 1);
+  ctx.textBaseline = 'alphabetic';
+  ctx.restore();
+};
+
+const drawFloatingDescriptions = (
+  ctx: CanvasRenderingContext2D,
+  box: CardBox,
   affliction: AfflictionPdfSource,
-  imageDataUrl: string | null,
   damageTypeBySlug: DamageTypeBySlug
-): string => {
-  const effectHtml = segmentsToHtml(
-    parseDamageDescription(affliction.effectDescription, damageTypeBySlug)
-  );
-  const healingHtml = segmentsToHtml(
-    parseDamageDescription(affliction.healingDescription, damageTypeBySlug)
-  );
+): void => {
+  const boxX = box.x + FLOATING_INSET;
+  const boxW = box.w - 2 * FLOATING_INSET;
+  const innerMaxWidth = boxW - 2 * DESC_PADDING_X;
 
-  const mediaInner = imageDataUrl
-    ? `<img class="apdf-card__img" src="${imageDataUrl.replace(/"/g, '&quot;')}" alt="" />`
-    : `<div class="apdf-card__placeholder" aria-hidden="true">${escapeHtml(
-        affliction.name.slice(0, 1).toUpperCase()
-      )}</div>`;
+  ctx.save();
+  ctx.font = DESC_FONT;
 
-  const tagsHtml = affliction.tags
-    .map(tag => {
-      const label = escapeHtml(getTagLabel(tag, damageTypeBySlug));
-      const color = escapeHtml(getTagColor(tag, damageTypeBySlug));
-      const isDamage = tag.startsWith(DAMAGE_TAG_PREFIX);
-      const cls = isDamage ? 'apdf-tag apdf-tag--damage' : 'apdf-tag';
-      const style = isDamage
-        ? `border-color:${color};color:${color};`
-        : 'border-color:#cbd5e1;color:#475569;';
-      return `<span class="${cls}" style="${style}">${label}</span>`;
-    })
-    .join('');
-
-  return `
-<article class="apdf-card">
-  <div class="apdf-card__banner">
-    <div class="apdf-card__media">${mediaInner}</div>
-    <div class="apdf-card__title-wrap">
-      <h2 class="apdf-card__name">${escapeHtml(affliction.name)}</h2>
-    </div>
-  </div>
-  <div class="apdf-card__body">
-    <div class="apdf-card__tags">${tagsHtml}</div>
-    <p class="apdf-card__desc">${effectHtml}</p>
-    <hr class="apdf-card__divider" />
-    <p class="apdf-card__desc apdf-card__desc--muted">${healingHtml}</p>
-  </div>
-</article>`.trim();
-};
-
-/** Fixed capture size (px), must match `.apdf-root` in afflictions-pdf.css */
-export const AFFLICTIONS_PDF_CAPTURE_WIDTH = 850;
-export const AFFLICTIONS_PDF_CAPTURE_HEIGHT = 600;
-
-const buildExportRootHtml = (
-  afflictions: readonly AfflictionPdfSource[],
-  imageMap: Map<string, string | null>,
-  damageTypeBySlug: DamageTypeBySlug
-): string => {
-  const cards = afflictions
-    .map(a =>
-      buildAfflictionCardHtml(a, imageMap.get(a.image) ?? null, damageTypeBySlug)
+  const spaceAboveDescriptions =
+    FLOATING_INSET + TITLE_HEIGHT + 6 + FLOATING_INSET;
+  const availableHeight = box.h - spaceAboveDescriptions;
+  const maxTotalLines = Math.max(
+    2,
+    Math.floor(
+      (availableHeight - 2 * DESC_PADDING_Y - DESC_SECTION_GAP) / DESC_LINE_HEIGHT
     )
-    .join('\n');
+  );
+  const maxEffectLines = Math.max(1, Math.ceil(maxTotalLines * 0.55));
+  const maxHealingLines = Math.max(1, maxTotalLines - maxEffectLines);
 
-  return `<div class="apdf-root"><div class="apdf-grid">${cards}</div></div>`.trim();
+  const effectLines = wrapWords(
+    ctx,
+    segmentsToWords(
+      parseDamageDescription(affliction.effectDescription, damageTypeBySlug)
+    ),
+    innerMaxWidth,
+    maxEffectLines
+  );
+  const healingLines = wrapWords(
+    ctx,
+    segmentsToWords(
+      parseDamageDescription(affliction.healingDescription, damageTypeBySlug)
+    ),
+    innerMaxWidth,
+    maxHealingLines
+  );
+
+  const textHeight =
+    effectLines.length * DESC_LINE_HEIGHT +
+    (healingLines.length > 0 ? DESC_SECTION_GAP : 0) +
+    healingLines.length * DESC_LINE_HEIGHT;
+  const panelHeight = Math.max(24, textHeight + 2 * DESC_PADDING_Y);
+  const panelY = box.y + box.h - FLOATING_INSET - panelHeight;
+
+  ctx.strokeStyle = STROKE_INNER;
+  ctx.lineWidth = STROKE_WIDTH;
+  drawRoundedRect(
+    ctx,
+    boxX + STROKE_WIDTH / 2,
+    panelY + STROKE_WIDTH / 2,
+    boxW - STROKE_WIDTH,
+    panelHeight - STROKE_WIDTH,
+    DESC_RADIUS
+  );
+  ctx.stroke();
+
+  let baselineY = panelY + DESC_PADDING_Y + DESC_LINE_HEIGHT - 3;
+  drawWrappedLines(
+    ctx,
+    effectLines,
+    boxX + DESC_PADDING_X,
+    baselineY,
+    DESC_LINE_HEIGHT,
+    DESC_EFFECT_COLOR
+  );
+  baselineY += effectLines.length * DESC_LINE_HEIGHT + DESC_SECTION_GAP;
+  drawWrappedLines(
+    ctx,
+    healingLines,
+    boxX + DESC_PADDING_X,
+    baselineY,
+    DESC_LINE_HEIGHT,
+    DESC_HEALING_COLOR
+  );
+
+  ctx.restore();
 };
 
-/** Escape accidental `</style>` sequences inside CSS text when embedding in srcdoc. */
-const escapeStyleForSrcDoc = (css: string): string =>
-  css.replace(/<\/style/gi, '<\\/style');
-
-const buildIframeSrcDoc = (
-  afflictions: readonly AfflictionPdfSource[],
-  imageMap: Map<string, string | null>,
+const drawCard = (
+  ctx: CanvasRenderingContext2D,
+  box: CardBox,
+  affliction: AfflictionPdfSource,
   damageTypeBySlug: DamageTypeBySlug
-): string => {
-  const styleBlock = escapeStyleForSrcDoc(afflictionsPdfStyles);
-  const bodyInner = buildExportRootHtml(afflictions, imageMap, damageTypeBySlug);
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/><style>${styleBlock}</style></head><body style="margin:0;background-color:#f1f5f9;">${bodyInner}</body></html>`;
+): void => {
+  drawCardOutline(ctx, box);
+  drawCardImagePlaceholder(ctx, box);
+  drawFloatingTitle(ctx, box, affliction.name);
+  drawFloatingDescriptions(ctx, box, affliction, damageTypeBySlug);
 };
+
+/* ------------------------------------------------------------------------------------------------
+ * Canvas construction
+ * ------------------------------------------------------------------------------------------------ */
+
+const buildAfflictionsCanvas = (
+  afflictions: readonly AfflictionPdfSource[],
+  damageTypeBySlug: DamageTypeBySlug
+): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas');
+  canvas.width = PAGE_WIDTH_PT * CAPTURE_SCALE;
+  canvas.height = PAGE_HEIGHT_PT * CAPTURE_SCALE;
+
+  const ctx = canvas.getContext('2d', { alpha: true });
+  if (!ctx) {
+    throw new Error('Canvas 2D context unavailable');
+  }
+
+  ctx.scale(CAPTURE_SCALE, CAPTURE_SCALE);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.textBaseline = 'alphabetic';
+
+  ctx.clearRect(0, 0, PAGE_WIDTH_PT, PAGE_HEIGHT_PT);
+
+  const boxes = computeCardBoxes();
+  const cardCount = Math.min(boxes.length, afflictions.length);
+  for (let index = 0; index < cardCount; index += 1) {
+    drawCard(ctx, boxes[index], afflictions[index], damageTypeBySlug);
+  }
+
+  return canvas;
+};
+
+/* ------------------------------------------------------------------------------------------------
+ * Public API
+ * ------------------------------------------------------------------------------------------------ */
 
 /**
- * Full iframe `srcdoc` for the export layout (same document as PDF capture). Used for modal preview.
+ * Builds the first export page as a PNG data URL for modal preview.
+ * Further pages are only included when downloading the PDF.
  */
-export const getAfflictionsPdfPreviewSrcDoc = async (options: {
+export const getAfflictionsPdfPreviewDataUrl = (options: {
   afflictions: readonly AfflictionPdfSource[];
   damageTypeBySlug: DamageTypeBySlug;
-}): Promise<string> => {
+}): string | null => {
   const { afflictions, damageTypeBySlug } = options;
   if (afflictions.length === 0) {
-    return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"/></head><body style="margin:0;background-color:#f1f5f9;"></body></html>`;
+    return null;
   }
-  const imageMap = await preloadAfflictionImages(afflictions);
-  return buildIframeSrcDoc(afflictions, imageMap, damageTypeBySlug);
+
+  const firstPage = afflictions.slice(0, CARDS_PER_PAGE);
+  const canvas = buildAfflictionsCanvas(firstPage, damageTypeBySlug);
+  return canvas.toDataURL('image/png');
 };
 
 /**
- * Renders afflictions as styled HTML (classic CSS), captures to canvas, saves a single landscape PDF.
+ * Saves a landscape A4 PDF with `CARDS_PER_PAGE` slots per sheet; overflow adds pages.
  */
 export const downloadAfflictionsLandscapePdf = async (options: {
   afflictions: readonly AfflictionPdfSource[];
@@ -357,90 +546,35 @@ export const downloadAfflictionsLandscapePdf = async (options: {
     return;
   }
 
-  const imageMap = await preloadAfflictionImages(afflictions);
+  const pdf = new jsPDF({
+    orientation: 'landscape',
+    unit: 'pt',
+    format: 'a4',
+    compress: true,
+  });
 
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('title', 'afflictions-pdf-capture');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.style.cssText = `position:fixed;left:-12000px;top:0;width:${AFFLICTIONS_PDF_CAPTURE_WIDTH}px;height:${AFFLICTIONS_PDF_CAPTURE_HEIGHT + 80}px;border:0;opacity:0;pointer-events:none;`;
-
-  const srcDoc = buildIframeSrcDoc(afflictions, imageMap, damageTypeBySlug);
-
-  /**
-   * Assign `srcdoc` before inserting the iframe so the first `load` event is for our document.
-   * If the iframe is appended empty, some browsers fire `load` for `about:blank` and we would
-   * resolve before `srcdoc` is applied — then `.apdf-root` is missing.
-   */
-  iframe.srcdoc = srcDoc;
-
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const onLoad = (): void => {
-        iframe.removeEventListener('load', onLoad);
-        resolve();
-      };
-      iframe.addEventListener('load', onLoad);
-      iframe.addEventListener(
-        'error',
-        () => {
-          reject(new Error('PDF iframe failed to load'));
-        },
-        { once: true }
-      );
-      document.body.appendChild(iframe);
-    });
-
-    const iframeDoc = iframe.contentDocument ?? iframe.contentWindow?.document;
-    const captureTarget = (iframeDoc?.querySelector('.apdf-root') ?? null) as HTMLElement | null;
-    if (!captureTarget) {
-      throw new Error(
-        `PDF capture root missing (body children: ${iframeDoc?.body?.childElementCount ?? 'n/a'})`
-      );
+  const pageCount = Math.ceil(afflictions.length / CARDS_PER_PAGE);
+  for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+    if (pageIndex > 0) {
+      pdf.addPage('a4', 'landscape');
     }
-
-    await new Promise<void>(resolve => {
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-    });
-
-    const canvas = await html2canvas(captureTarget, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#f1f5f9',
-      logging: false,
-      foreignObjectRendering: false,
-      width: AFFLICTIONS_PDF_CAPTURE_WIDTH,
-      height: AFFLICTIONS_PDF_CAPTURE_HEIGHT,
-      windowWidth: AFFLICTIONS_PDF_CAPTURE_WIDTH,
-      windowHeight: AFFLICTIONS_PDF_CAPTURE_HEIGHT,
-    });
-
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    /** A4 landscape in pt (width × height). */
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'pt',
-      format: 'a4',
-      compress: true,
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const imgW = canvas.width;
-    const imgH = canvas.height;
-    const ratio = Math.min(pageWidth / imgW, pageHeight / imgH);
-    const renderW = imgW * ratio;
-    const renderH = imgH * ratio;
-    const offsetX = (pageWidth - renderW) / 2;
-    const offsetY = (pageHeight - renderH) / 2;
-
-    pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderW, renderH, undefined, 'FAST');
-
-    const name =
-      options.fileName ??
-      `afflictions-export-${new Date().toISOString().slice(0, 10)}.pdf`;
-    pdf.save(name.endsWith('.pdf') ? name : `${name}.pdf`);
-  } finally {
-    iframe.remove();
+    const start = pageIndex * CARDS_PER_PAGE;
+    const slice = afflictions.slice(start, start + CARDS_PER_PAGE);
+    const canvas = buildAfflictionsCanvas(slice, damageTypeBySlug);
+    pdf.addImage(
+      canvas,
+      'PNG',
+      0,
+      0,
+      PAGE_WIDTH_PT,
+      PAGE_HEIGHT_PT,
+      undefined,
+      'FAST'
+    );
   }
+
+  const name =
+    options.fileName ??
+    `afflictions-export-${new Date().toISOString().slice(0, 10)}.pdf`;
+  pdf.save(name.endsWith('.pdf') ? name : `${name}.pdf`);
 };

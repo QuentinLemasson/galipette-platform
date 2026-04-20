@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Typography } from '@/common/components';
 import {
   Button,
@@ -19,8 +19,9 @@ import {
 import { TagBadge } from './components/TagBadge';
 import { DAMAGE_TYPE_BY_SLUG } from './data/damage-types';
 import {
+  CARDS_PER_PAGE,
   downloadAfflictionsLandscapePdf,
-  getAfflictionsPdfPreviewSrcDoc,
+  getAfflictionsPdfPreviewDataUrl,
   parseDamageDescription,
   type DescriptionSegment,
 } from './utils/afflictions-pdf.util';
@@ -101,8 +102,6 @@ const AFFLICTIONS: Affliction[] = [
   },
 ];
 
-const MAX_EXPORT_TOTAL = 10;
-
 const renderDamageDescription = (
   description: string
 ): ReactNode[] => {
@@ -122,8 +121,6 @@ export default function AfflictionsPage() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState<Record<number, number>>({});
-  const [previewSrcDoc, setPreviewSrcDoc] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
 
   const totalSelected = useMemo(
     () => Object.values(selectedQuantities).reduce((sum, quantity) => sum + quantity, 0),
@@ -139,42 +136,21 @@ export default function AfflictionsPage() {
     [selectedQuantities]
   );
 
-  useEffect(() => {
-    if (!isExportOpen) {
-      setPreviewSrcDoc(null);
-      setPreviewLoading(false);
-      return;
+  const previewImageUrl = useMemo(() => {
+    if (!isExportOpen || selectedAfflictionsForExport.length === 0) {
+      return null;
     }
-
-    if (selectedAfflictionsForExport.length === 0) {
-      setPreviewSrcDoc(null);
-      setPreviewLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setPreviewLoading(true);
-    setPreviewSrcDoc(null);
-
-    void getAfflictionsPdfPreviewSrcDoc({
+    return getAfflictionsPdfPreviewDataUrl({
       afflictions: selectedAfflictionsForExport,
       damageTypeBySlug: DAMAGE_TYPE_BY_SLUG,
-    })
-      .then(srcDoc => {
-        if (!cancelled) {
-          setPreviewSrcDoc(srcDoc);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setPreviewLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    });
   }, [isExportOpen, selectedAfflictionsForExport]);
+
+  const pdfPageCount = useMemo(
+    () =>
+      totalSelected === 0 ? 0 : Math.ceil(totalSelected / CARDS_PER_PAGE),
+    [totalSelected]
+  );
 
   const toggleAfflictionSelection = (afflictionId: number, checked: boolean): void => {
     setSelectedQuantities(currentQuantities => {
@@ -187,26 +163,18 @@ export default function AfflictionsPage() {
         return currentQuantities;
       }
 
-      if (totalSelected >= MAX_EXPORT_TOTAL) {
-        return currentQuantities;
-      }
-
       return { ...currentQuantities, [afflictionId]: 1 };
     });
   };
 
   const updateAfflictionQuantity = (afflictionId: number, nextQuantity: number): void => {
     setSelectedQuantities(currentQuantities => {
-      const clampedQuantity = Math.max(1, nextQuantity);
-      const othersTotal = Object.entries(currentQuantities).reduce(
-        (sum, [id, quantity]) => (Number(id) === afflictionId ? sum : sum + quantity),
-        0
-      );
-      const allowedQuantity = Math.min(clampedQuantity, MAX_EXPORT_TOTAL - othersTotal);
+      const parsed = Number.parseInt(String(nextQuantity), 10);
+      const clampedQuantity = Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
 
       return {
         ...currentQuantities,
-        [afflictionId]: Math.max(1, allowedQuantity),
+        [afflictionId]: clampedQuantity,
       };
     });
   };
@@ -248,9 +216,10 @@ export default function AfflictionsPage() {
             <DialogHeader>
               <DialogTitle>Exporter des afflictions</DialogTitle>
               <DialogDescription>
-                Choisissez plusieurs afflictions et leur quantite. Le total ne peut pas depasser{' '}
-                {MAX_EXPORT_TOTAL}. PDF paysage, une page : grille 5 x 2 (chaque carte ~ 1/5 de la
-                largeur et 1/2 de la hauteur de la page).
+                Choisissez plusieurs afflictions et leur quantite. PDF paysage : grille 4 x 2 (
+                {CARDS_PER_PAGE} cartes par page). Au-dela, des pages supplementaires sont ajoutees.
+                L&apos;apercu montre uniquement la premiere page (traits uniquement, fond transparent a
+                l&apos;export).
               </DialogDescription>
             </DialogHeader>
 
@@ -258,7 +227,6 @@ export default function AfflictionsPage() {
               {AFFLICTIONS.map(affliction => {
                 const isSelected = selectedQuantities[affliction.id] !== undefined;
                 const quantity = selectedQuantities[affliction.id] ?? 1;
-                const canSelectMore = totalSelected < MAX_EXPORT_TOTAL;
 
                 return (
                   <div
@@ -269,7 +237,6 @@ export default function AfflictionsPage() {
                       <Checkbox
                         id={`affliction-export-${affliction.id}`}
                         checked={isSelected}
-                        disabled={!isSelected && !canSelectMore}
                         onCheckedChange={checked =>
                           toggleAfflictionSelection(affliction.id, checked === true)
                         }
@@ -293,7 +260,6 @@ export default function AfflictionsPage() {
                         id={`affliction-quantity-${affliction.id}`}
                         type="number"
                         min={1}
-                        max={MAX_EXPORT_TOTAL}
                         value={quantity}
                         disabled={!isSelected}
                         onChange={event =>
@@ -319,16 +285,11 @@ export default function AfflictionsPage() {
                   className="relative w-full overflow-hidden rounded-lg border bg-muted"
                   style={{ aspectRatio: '842 / 595' }}
                 >
-                  {previewLoading ? (
-                    <div className="flex min-h-[200px] items-center justify-center text-sm text-muted-foreground">
-                      Chargement de l&apos;apercu...
-                    </div>
-                  ) : previewSrcDoc ? (
-                    <iframe
-                      key={previewSrcDoc.length}
-                      title="Apercu export PDF"
-                      className="absolute inset-0 h-full w-full border-0"
-                      srcDoc={previewSrcDoc}
+                  {previewImageUrl ? (
+                    <img
+                      src={previewImageUrl}
+                      alt="Apercu export PDF"
+                      className="absolute inset-0 h-full w-full object-contain"
                     />
                   ) : (
                     <div className="flex min-h-[200px] items-center justify-center text-sm text-muted-foreground">
@@ -341,7 +302,8 @@ export default function AfflictionsPage() {
 
             <DialogFooter className="items-center justify-between sm:justify-between">
               <Typography variant="caption">
-                Total selectionne: {totalSelected}/{MAX_EXPORT_TOTAL}
+                Total selectionne: {totalSelected}
+                {pdfPageCount > 0 ? ` — ${pdfPageCount} page(s) au PDF` : ''}
               </Typography>
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => setIsExportOpen(false)}>
