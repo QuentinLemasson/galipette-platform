@@ -51,6 +51,13 @@ const CharactersPage = lazy(() => import('../screens/CharactersPage'));
 const CharacterDetailsPage = lazy(
   () => import('../screens/CharacterDetailsPage')
 );
+// Rules feature screens
+const DamageTypesPage = lazy(
+  () => import('../screens/DamageTypesPage')
+);
+const AfflictionsPage = lazy(
+  () => import('../screens/AfflictionsPage')
+);
 const ErrorCodePage = lazy(() => import('../screens/ErrorCodePage'));
 
 // Pages config
@@ -171,6 +178,25 @@ export const PAGES = {
     slots: [RouteSlot.NAVBAR],
     tags: [RouteTags.CHARACTERS, RouteTags.DETAILS],
     component: CharacterDetailsPage,
+  },
+  // ** RULES PAGES **
+  DAMAGE_TYPES: {
+    path: '/rules/damage-types',
+    displayName: 'Types de degats',
+    description: 'Damage types list',
+    permissions: [],
+    slots: [RouteSlot.NAVBAR],
+    tags: [RouteTags.RULES],
+    component: DamageTypesPage,
+  },
+  AFFLICTIONS: {
+    path: '/rules/afflictions',
+    displayName: 'Afflictions',
+    description: 'Afflictions list',
+    permissions: [],
+    slots: [RouteSlot.NAVBAR],
+    tags: [RouteTags.RULES],
+    component: AfflictionsPage,
   },
   ERROR_CODE: {
     path: '/:errorCode',

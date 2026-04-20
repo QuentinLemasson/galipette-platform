@@ -7,11 +7,13 @@
 import { Suspense } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { getPagesBySlot, PAGES } from '../routes/config/pages';
-import { RouteSlot } from '../types/routes.types';
+import { RouteSlot, RouteTags } from '../types/routes.types';
 import { PreferencesDropdown, ThemeToggleButton } from '@/common/components';
 import { Separator } from '@/common/ui';
 import {
   NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
   NavigationMenuList,
   NavigationMenuItem,
   NavigationMenuLink,
@@ -26,6 +28,11 @@ import { cn } from '@/common/utils';
  */
 export function RootLayout() {
   const location = useLocation();
+  const navbarPages = getPagesBySlot(RouteSlot.NAVBAR);
+  const rulePages = navbarPages.filter(page => page.tags.includes(RouteTags.RULES));
+  const topLevelPages = navbarPages.filter(
+    page => !page.tags.includes(RouteTags.RULES)
+  );
 
   /**
    * Checks if a navigation link should be marked as active.
@@ -53,7 +60,7 @@ export function RootLayout() {
             <Separator orientation="vertical" className="h-6" />
             <NavigationMenu>
               <NavigationMenuList>
-                {getPagesBySlot(RouteSlot.NAVBAR).map(page => {
+                {topLevelPages.map(page => {
                   const isActive = isLinkActive(page.path);
                   return (
                     <NavigationMenuItem key={page.path}>
@@ -71,6 +78,36 @@ export function RootLayout() {
                     </NavigationMenuItem>
                   );
                 })}
+                {rulePages.length > 0 && (
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger
+                      className={cn(
+                        rulePages.some(page => isLinkActive(page.path)) &&
+                          'bg-accent text-accent-foreground font-medium'
+                      )}
+                    >
+                      Règles
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent className="min-w-[800px]">
+                      <ul className="grid min-w-[240px] gap-1">
+                        {rulePages.map(page => (
+                          <li key={page.path}>
+                            <Link to={page.path}>
+                              <NavigationMenuLink className="space-y-1 p-3 leading-none">
+                                <div className="text-sm font-medium leading-none">
+                                  {page.displayName}
+                                </div>
+                                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                  {page.description}
+                                </p>
+                              </NavigationMenuLink>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                )}
               </NavigationMenuList>
             </NavigationMenu>
           </div>
