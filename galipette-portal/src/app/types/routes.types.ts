@@ -32,6 +32,7 @@ export enum RouteTags {
   CAMPAIGNS = 'campaign',
   ANCESTRIES = 'ancestry',
   CHARACTERS = 'character',
+  MAGIC_ITEMS = 'magic-item',
   RULES = 'rules',
   // ** For Development Purposes **
   EXAMPLE = 'example',

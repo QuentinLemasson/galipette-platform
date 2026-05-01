@@ -9,6 +9,7 @@ Express server providing the API for the Galipette Cendrée TTRPG Campaign Manag
 - **Characters**: Create and manage characters with stats, races, and afflictions
 - **Races**: Manage character races
 - **Afflictions**: Apply and track character afflictions with severity
+- **Magic Items**: Manage magical items and their types, with image references and descriptions
 - **Rules**: Store and retrieve game rules as JSON
 
 ## Technologies
@@ -125,6 +126,19 @@ Express server providing the API for the Galipette Cendrée TTRPG Campaign Manag
 - `POST /api/characters/:id/afflictions` - Apply an affliction to a character
 - `PATCH /api/characters/:id/afflictions/:afflictionId` - Update severity of a character's affliction
 - `DELETE /api/characters/:id/afflictions/:afflictionId` - Remove an affliction from a character
+
+### Magic Items
+
+- `GET /api/magic-items` - List all magic items (supports `?search=`, `?typeIds=1,2`, `?ids=1,2,3`, pagination)
+- `GET /api/magic-items/:id` - Get magic item details
+- `POST /api/magic-items` - Create a new magic item
+- `PATCH /api/magic-items/:id` - Update a magic item
+- `DELETE /api/magic-items/:id` - Delete a magic item
+- `GET /api/magic-item-types` - List all magic item types
+- `GET /api/magic-item-types/:id` - Get magic item type details
+- `POST /api/magic-item-types` - Create a new magic item type
+- `PATCH /api/magic-item-types/:id` - Update a magic item type
+- `DELETE /api/magic-item-types/:id` - Delete a magic item type
 
 ### Rules
 

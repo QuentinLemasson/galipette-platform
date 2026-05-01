@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Placeholder card template for magic items.
+  Layout coordinates (viewBox 0 0 200 280) match the slots used by
+  magic-items-pdf.util.ts when overlaying name, type, image and description.
+
+  Sections:
+    - Outer rounded frame.
+    - Title band at top (name).
+    - Type sub-band (small badge).
+    - Image slot (centered square area).
+    - Description panel at bottom (wrapped text).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" fill="none">
+  <!-- Outer card frame -->
+  <rect x="3" y="3" width="194" height="274" rx="10" ry="10"
+        stroke="#64748b" stroke-width="1.2" fill="none" />
+
+  <!-- Inner decorative frame -->
+  <rect x="9" y="9" width="182" height="262" rx="7" ry="7"
+        stroke="#cbd5e1" stroke-width="0.6" fill="none" />
+
+  <!-- Title band -->
+  <rect x="14" y="14" width="172" height="26" rx="6" ry="6"
+        stroke="#64748b" stroke-width="1" fill="none" />
+
+  <!-- Type sub-band -->
+  <rect x="14" y="44" width="80" height="14" rx="4" ry="4"
+        stroke="#94a3b8" stroke-width="0.8" fill="none" />
+
+  <!-- Image slot -->
+  <rect x="20" y="66" width="160" height="110" rx="6" ry="6"
+        stroke="#94a3b8" stroke-width="0.8" stroke-dasharray="4 3" fill="none" />
+
+  <!-- Decorative diagonal hint inside image slot -->
+  <line x1="20" y1="66" x2="180" y2="176"
+        stroke="#e2e8f0" stroke-width="0.5" />
+  <line x1="180" y1="66" x2="20" y2="176"
+        stroke="#e2e8f0" stroke-width="0.5" />
+
+  <!-- Description panel -->
+  <rect x="14" y="184" width="172" height="82" rx="6" ry="6"
+        stroke="#94a3b8" stroke-width="0.8" fill="none" />
+</svg>

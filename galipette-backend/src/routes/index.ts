@@ -8,6 +8,10 @@ import {
   tagRouter,
   characterAfflictionRouter,
 } from '../modules/afflictions/affliction.routes';
+import {
+  magicItemRouter,
+  magicItemTypeRouter,
+} from '../modules/magicItems/magicItem.routes';
 import ruleRoutes from '../modules/rules/rule.routes';
 
 // Router instance
@@ -28,6 +32,8 @@ router.use('/ancestries', ancestryRoutes);
 router.use('/afflictions', afflictionRouter);
 router.use('/tags', tagRouter);
 router.use('/characters/:id/afflictions', characterAfflictionRouter);
+router.use('/magic-items', magicItemRouter);
+router.use('/magic-item-types', magicItemTypeRouter);
 router.use('/rules', ruleRoutes);
 
 // Export router

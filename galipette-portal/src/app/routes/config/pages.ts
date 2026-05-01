@@ -58,6 +58,19 @@ const DamageTypesPage = lazy(
 const AfflictionsPage = lazy(
   () => import('../screens/AfflictionsPage')
 );
+// Magic items feature screens
+const MagicItemsListPage = lazy(
+  () => import('@/features/magicItems/screens/magicItemsList.page')
+);
+const MagicItemsDetailsPage = lazy(
+  () => import('@/features/magicItems/screens/magicItemsDetails.page')
+);
+const MagicItemsCreatePage = lazy(
+  () => import('@/features/magicItems/screens/magicItemsCreate.page')
+);
+const MagicItemsEditPage = lazy(
+  () => import('@/features/magicItems/screens/magicItemsEdit.page')
+);
 const ErrorCodePage = lazy(() => import('../screens/ErrorCodePage'));
 
 // Pages config
@@ -158,6 +171,45 @@ export const PAGES = {
     tags: [RouteTags.ANCESTRIES, RouteTags.EDIT],
     component: AncestriesEditPage,
     build: params => `/ancestries/${params.ancestryId}/edit`,
+  },
+  // ** MAGIC ITEM PAGES **
+  MAGIC_ITEMS: {
+    path: '/magic-items',
+    displayName: 'Objets magiques',
+    description: 'Liste des objets magiques',
+    permissions: [],
+    slots: [RouteSlot.NAVBAR],
+    tags: [RouteTags.MAGIC_ITEMS, RouteTags.DASHBOARD],
+    component: MagicItemsListPage,
+  },
+  MAGIC_ITEM_DETAILS: {
+    path: '/magic-items/:magicItemId',
+    displayName: 'Detail objet magique',
+    description: 'Fiche objet magique',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.MAGIC_ITEMS, RouteTags.DETAILS],
+    component: MagicItemsDetailsPage,
+    build: params => `/magic-items/${params.magicItemId}`,
+  },
+  MAGIC_ITEM_CREATE: {
+    path: '/magic-items/new',
+    displayName: 'Creer un objet magique',
+    description: 'Creer un nouvel objet magique',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.MAGIC_ITEMS, RouteTags.CREATE],
+    component: MagicItemsCreatePage,
+  },
+  MAGIC_ITEM_EDIT: {
+    path: '/magic-items/:magicItemId/edit',
+    displayName: 'Modifier objet magique',
+    description: 'Modifier un objet magique',
+    permissions: [],
+    slots: [],
+    tags: [RouteTags.MAGIC_ITEMS, RouteTags.EDIT],
+    component: MagicItemsEditPage,
+    build: params => `/magic-items/${params.magicItemId}/edit`,
   },
   // ** CHARACTER PAGES **
   CHARACTERS: {

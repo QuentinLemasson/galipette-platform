@@ -9,3 +9,6 @@ export * from './campaigns.schema';
 
 // Export all ancestry-related schemas and types
 export * from './ancestries.schema';
+
+// Export all magic-item-related schemas and types
+export * from './magic-items.schema';

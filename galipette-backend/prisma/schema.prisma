@@ -157,3 +157,26 @@ model AfflictionTag {
 
   @@id([afflictionId, tagId]) // Composite primary key
 }
+
+// ===================================================
+// =================== MAGIC ITEMS ===================
+// ===================================================
+
+model MagicItem {
+  id          Int           @id @default(autoincrement()) // Unique magic item ID
+  name        String        @unique                       // Magic item name (unique)
+  description String                                       // Description
+  image       String?                                      // Optional image asset URL
+  type        MagicItemType @relation(fields: [typeId], references: [id]) // Linked type
+  typeId      Int
+  createdAt   DateTime      @default(now())               // Creation timestamp
+  updatedAt   DateTime      @updatedAt                    // Last update timestamp
+
+  @@index([typeId])
+}
+
+model MagicItemType {
+  id    Int         @id @default(autoincrement()) // Unique type ID
+  name  String      @unique                       // Type name (unique, e.g. "Arme", "Potion")
+  items MagicItem[]                               // Magic items of this type
+}
